@@ -7,7 +7,7 @@
 <script type="module">
 import { supabase, $, esc, guard, shell, fmtDate } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
-shell(p, "certificados.html");
+shell(p, "certificados");
 const { data } = await supabase.from("academy_certificados").select("codigo,emitido_em,academy_trilhas(titulo,carga_horas)").eq("user_id", p.id).order("emitido_em", { ascending: false });
 $("#rows").innerHTML = (data || []).map((c) => `<tr><td><b>${esc(c.academy_trilhas.titulo)}</b></td><td class="num">${c.academy_trilhas.carga_horas ? c.academy_trilhas.carga_horas + "h" : "—"}</td><td class="num">${esc(c.codigo)}</td><td>${fmtDate(c.emitido_em)}</td></tr>`).join("") || '<tr><td colspan="4" class="empty">Conclua todas as aulas de uma trilha para receber o certificado.</td></tr>';
 </script></body></html>

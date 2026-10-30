@@ -1,7 +1,7 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Artigo · FourLab Academy</title></head>
 <body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
 <section class="view">
-  <div class="page-head"><div><span class="ex" id="lvl"></span><h1 id="t" style="margin-top:6px;font-size:24px"></h1><div class="sub" id="src"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap" id="acts"><a class="btn btn-ghost btn-sm" href="artigos.html" style="text-decoration:none">Voltar</a></div></div>
+  <div class="page-head"><div><span class="ex" id="lvl"></span><h1 id="t" style="margin-top:6px;font-size:24px"></h1><div class="sub" id="src"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap" id="acts"><a class="btn btn-ghost btn-sm" href="artigos" style="text-decoration:none">Voltar</a></div></div>
   <div id="extras" style="display:flex;flex-direction:column;gap:14px"></div>
   <div class="seg" id="modo" style="align-self:flex-start"><button class="on" data-m="lado">Lado a lado</button><button data-m="pt">Só tradução</button><button data-m="en">Só original</button></div>
   <div class="card reader" id="reader"><div id="en"><h4>Original</h4><div class="reader-text" id="ten"></div></div><div id="pt"><h4>Tradução · PT-BR</h4><div class="reader-text" id="tpt"></div></div></div>
@@ -12,7 +12,7 @@ import { supabase, $, $$, esc, guard, shell, qs } from "./assets/app.js";
 import { marked } from "https://esm.sh/marked@12.0.2";
 const md = (t) => marked.parse(esc(t || ""));
 const p = await guard(); if (!p) throw 0;
-shell(p, "artigos.html");
+shell(p, "artigos");
 const { data: a } = await supabase.from("academy_artigos").select("*").eq("id", qs("id")).maybeSingle();
 if (!a) { $("#t").textContent = "Artigo não encontrado"; throw 0; }
 document.title = (a.titulo_pt || a.titulo_original) + " · FourLab Academy";

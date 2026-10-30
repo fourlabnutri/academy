@@ -7,7 +7,7 @@
     <ul><li>Aulas com especialistas em nutrição esportiva</li><li>Artigos recentes no original e traduzidos</li><li>Fichas técnicas e protocolos dos produtos</li><li>Certificado de horas por trilha</li></ul>
   </div>
   <form class="r" id="f">
-    <div><h2 style="font-size:20px">Solicitar acesso</h2><p class="muted" style="margin-top:4px">Já tem cadastro? <a href="login.html" style="color:var(--orange);font-weight:700">Entrar</a></p></div>
+    <div><h2 style="font-size:20px">Solicitar acesso</h2><p class="muted" style="margin-top:4px">Já tem cadastro? <a href="login" style="color:var(--orange);font-weight:700">Entrar</a></p></div>
     <div class="field"><label for="nome">Nome completo</label><input id="nome" required autocomplete="name"></div>
     <div class="row2">
       <div class="field"><label for="email">E-mail</label><input id="email" type="email" required autocomplete="email"></div>
@@ -35,12 +35,12 @@ $("#f").addEventListener("submit", async (e) => {
   const [cidade, uf] = $("#cidade").value.split("/").map((s) => s.trim());
   const { data, error } = await supabase.auth.signUp({
     email: $("#email").value.trim(), password: $("#senha").value,
-    options: { emailRedirectTo: location.origin + location.pathname.replace(/index\.html$|$/, "pendente.html"),
+    options: { emailRedirectTo: location.origin + location.pathname.replace(/index\.html$|$/, "pendente"),
       data: { app: "academy", nome: $("#nome").value.trim(), profissao: $("#profissao").value, conselho, registro: num.join(" "), cidade, uf: uf || null, modalidade: $("#modalidade").value } },
   });
   b.disabled = false;
   if (error) return showMsg($("#msg"), error.message.includes("registered") ? "Esse e-mail já tem cadastro. Use Entrar." : "Não foi possível cadastrar: " + error.message);
-  if (data.session) location.href = "pendente.html";
+  if (data.session) location.href = "pendente";
   else showMsg($("#msg"), "Cadastro criado. Confirme pelo link que enviamos ao seu e-mail e depois entre para enviar a carteirinha.", "ok");
 });
 </script></body></html>

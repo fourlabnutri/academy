@@ -5,7 +5,7 @@
 <script type="module">
 import { supabase, $, esc, guard, shell, qs, fmtDur } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
-shell(p, "inicio.html");
+shell(p, "inicio");
 const id = qs("id");
 const [{ data: t }, { data: aulas }, { data: prog }] = await Promise.all([
   supabase.from("academy_trilhas").select("*").eq("id", id).maybeSingle(),
@@ -16,5 +16,5 @@ if (!t) { $("#t").textContent = "Trilha não encontrada"; throw 0; }
 document.title = t.titulo + " · FourLab Academy";
 $("#t").textContent = t.titulo; $("#d").textContent = t.descricao || "";
 const done = new Set((prog || []).filter((x) => x.concluida).map((x) => x.aula_id));
-$("#lista").innerHTML = (aulas || []).map((a, i) => `<a class="les" href="aula.html?id=${a.id}" style="text-decoration:none"><span class="chk ${done.has(a.id) ? "done" : ""}"></span><span class="t">${i + 1}. ${esc(a.titulo)}<br><span class="muted" style="font-size:12px;font-weight:500">${esc(a.professor || "")}</span></span><span class="d">${fmtDur(a.duracao_seg)}</span></a>`).join("") || '<div class="empty">Nenhuma aula publicada ainda.</div>';
+$("#lista").innerHTML = (aulas || []).map((a, i) => `<a class="les" href="aula?id=${a.id}" style="text-decoration:none"><span class="chk ${done.has(a.id) ? "done" : ""}"></span><span class="t">${i + 1}. ${esc(a.titulo)}<br><span class="muted" style="font-size:12px;font-weight:500">${esc(a.professor || "")}</span></span><span class="d">${fmtDur(a.duracao_seg)}</span></a>`).join("") || '<div class="empty">Nenhuma aula publicada ainda.</div>';
 </script></body></html>

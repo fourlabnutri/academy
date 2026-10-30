@@ -9,7 +9,7 @@
 <script type="module">
 import { supabase, $, esc, guard, shell, fmtDate } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
-shell(p, "inicio.html");
+shell(p, "inicio");
 $("#ola").textContent = "Olá, " + p.nome.split(" ")[0];
 const [{ data: trilhas }, { data: aulas }, { data: prog }, { data: arts }] = await Promise.all([
   supabase.from("academy_trilhas").select("*").eq("etapa", "publicado").order("ordem"),
@@ -22,13 +22,13 @@ const cores = [["#731b58", "#5c1547"], ["#e3055f", "#b8044d"], ["#e96709", "#c25
 $("#trilhas").innerHTML = (trilhas || []).map((t, i) => {
   const as = (aulas || []).filter((a) => a.trilha_id === t.id), n = as.length, d = as.filter((a) => done.has(a.id)).length, pct = n ? Math.round(d / n * 100) : 0;
   const [a, b] = cores[i % cores.length];
-  return `<a class="card course" href="trilha.html?id=${t.id}" style="text-decoration:none"><div class="thumb"><div class="lines" style="background:repeating-linear-gradient(-62deg,${a} 0 22px,${b} 22px 50px)"></div><span class="pill">${pct === 100 ? "Concluída" : pct ? "Em andamento" : "Nova"}</span></div>
+  return `<a class="card course" href="trilha?id=${t.id}" style="text-decoration:none"><div class="thumb"><div class="lines" style="background:repeating-linear-gradient(-62deg,${a} 0 22px,${b} 22px 50px)"></div><span class="pill">${pct === 100 ? "Concluída" : pct ? "Em andamento" : "Nova"}</span></div>
     <div class="body"><h3>${esc(t.titulo)}</h3><p class="muted" style="font-size:13px">${esc(t.descricao || "")}</p>${pct ? `<div class="bar" style="margin-top:6px"><i style="width:${pct}%"></i></div>` : ""}
     <div class="meta"><span>${n} aula${n === 1 ? "" : "s"}</span>${t.carga_horas ? `<span>${t.carga_horas}h</span>` : ""}${pct ? `<span>${pct}%</span>` : ""}</div></div></a>`;
 }).join("") || '<div class="card empty">As primeiras trilhas estão sendo preparadas.</div>';
 const prox = (aulas || []).find((a) => !done.has(a.id));
 $("#destaque").innerHTML = (prox ? `<div class="card hero s8"><div><span class="eyebrow">Continue aprendendo</span><h2>${esc(prox.titulo)}</h2><p>${esc(prox.professor || "")}</p></div>
-  <div><a class="btn btn-light" href="aula.html?id=${prox.id}" style="text-decoration:none">Assistir</a></div></div>` : "") +
-  `<div class="card ${prox ? "s4" : "s12"}"><div class="card-head"><div><h2>Artigos recentes</h2><p class="desc">Resumo, tradução e original</p></div><a class="icon-btn" href="artigos.html" aria-label="Ver artigos">→</a></div><div class="list">${
-  (arts || []).map((a) => `<a class="li" href="artigo.html?id=${a.id}" style="text-decoration:none">${a.nivel_evidencia ? `<span class="pill">${esc(a.nivel_evidencia)}</span>` : ""}<div class="t"><b>${esc(a.titulo_pt || a.titulo_original)}</b><span>${esc([a.periodico, a.ano].filter(Boolean).join(" · "))}</span></div></a>`).join("") || '<p class="muted">Em breve.</p>'}</div></div>`;
+  <div><a class="btn btn-light" href="aula?id=${prox.id}" style="text-decoration:none">Assistir</a></div></div>` : "") +
+  `<div class="card ${prox ? "s4" : "s12"}"><div class="card-head"><div><h2>Artigos recentes</h2><p class="desc">Resumo, tradução e original</p></div><a class="icon-btn" href="artigos" aria-label="Ver artigos">→</a></div><div class="list">${
+  (arts || []).map((a) => `<a class="li" href="artigo?id=${a.id}" style="text-decoration:none">${a.nivel_evidencia ? `<span class="pill">${esc(a.nivel_evidencia)}</span>` : ""}<div class="t"><b>${esc(a.titulo_pt || a.titulo_original)}</b><span>${esc([a.periodico, a.ano].filter(Boolean).join(" · "))}</span></div></a>`).join("") || '<p class="muted">Em breve.</p>'}</div></div>`;
 </script></body></html>

@@ -8,12 +8,12 @@
   <button class="btn btn-primary" type="submit">Entrar</button>
   <div style="display:flex;justify-content:space-between;font-size:13px;flex-wrap:wrap;gap:8px">
     <button type="button" class="linkbtn" id="reset">Esqueci a senha</button>
-    <a href="index.html" style="color:var(--orange);font-weight:700">Solicitar acesso</a>
+    <a href="./" style="color:var(--orange);font-weight:700">Solicitar acesso</a>
   </div>
 </form></div>
 <script type="module">
 import { supabase, $, showMsg, getProfile } from "./assets/app.js";
-const go = async () => { const p = await getProfile(); if (p) location.replace(p.status === "aprovado" ? "inicio.html" : "pendente.html"); };
+const go = async () => { const p = await getProfile(); if (p) location.replace(p.status === "aprovado" ? "inicio" : "pendente"); };
 go();
 $("#f").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -24,7 +24,7 @@ $("#f").addEventListener("submit", async (e) => {
 $("#reset").onclick = async () => {
   const email = $("#email").value.trim();
   if (!email) return showMsg($("#msg"), "Digite seu e-mail acima e clique de novo.");
-  await supabase.auth.resetPasswordForEmail(email, { redirectTo: location.href.replace(/login\.html.*/, "senha.html") });
+  await supabase.auth.resetPasswordForEmail(email, { redirectTo: location.href.replace(/login\.html.*/, "senha") });
   showMsg($("#msg"), "Se o e-mail tiver cadastro, enviamos um link para criar nova senha.", "ok");
 };
 </script></body></html>

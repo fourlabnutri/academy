@@ -11,6 +11,6 @@ $("#f").addEventListener("submit", async (e) => {
   e.preventDefault();
   const { error } = await supabase.auth.updateUser({ password: $("#senha").value });
   if (error) return showMsg($("#msg"), "O link expirou. Peça outro em Esqueci a senha.");
-  showMsg($("#msg"), "Senha salva. Redirecionando…", "ok"); setTimeout(() => location.href = "login.html", 1200);
+  showMsg($("#msg"), "Senha salva. Redirecionando…", "ok"); setTimeout(() => location.href = "login", 1200);
 });
 </script></body></html>

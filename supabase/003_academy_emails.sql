@@ -34,7 +34,7 @@ revoke all on function public.academy_send_email(text, text, text) from public, 
 create or replace function public.academy_email_status() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare nome1 text := split_part(coalesce(new.nome, ''), ' ', 1);
-        btn text := '<a href="https://academy.fourlabnutrition.com.br/login.html" style="display:inline-block;margin-top:12px;background:#e96709;color:#fff;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:999px">Acessar o Academy</a>';
+        btn text := '<a href="https://academy.fourlabnutrition.com.br/login" style="display:inline-block;margin-top:12px;background:#e96709;color:#fff;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:999px">Acessar o Academy</a>';
 begin
   if new.role <> 'prescritor' then return new; end if;
   if tg_op = 'INSERT' then

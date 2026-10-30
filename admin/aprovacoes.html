@@ -7,7 +7,7 @@
 <script type="module">
 import { supabase, $, $$, esc, guard, shell, fmtDate, initials } from "../assets/app.js";
 const p = await guard(["comercial", "admin"]); if (!p) throw 0;
-shell(p, "admin/aprovacoes.html");
+shell(p, "admin/aprovacoes");
 let status = "pendente", rows = [];
 async function load() {
   const { data } = await supabase.from("academy_profiles").select("*").eq("role", "prescritor").eq("status", status).order("created_at", { ascending: false });

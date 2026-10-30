@@ -9,7 +9,7 @@
 <script type="module">
 import { supabase, $, $$, esc, guard, shell, showMsg } from "../assets/app.js";
 const p = await guard(["editor", "revisor", "admin"]); if (!p) throw 0;
-shell(p, "admin/conteudo.html");
+shell(p, "admin/conteudo");
 const ETAPAS = [["rascunho", ""], ["em_revisao", "warn"], ["publicado", "ok"], ["arquivado", "bad"]];
 const etapaPill = (e) => `<span class="pill ${(ETAPAS.find((x) => x[0] === e) || [])[1] || ""}">${e.replace("_", " ")}</span>`;
 // campos de cada tipo: [coluna, rótulo, tipo]

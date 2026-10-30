@@ -16,12 +16,12 @@
 <script type="module">
 import { supabase, $, $$, esc, guard, shell, qs, fmtDur, pandaUrl, showMsg } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
-shell(p, "inicio.html");
+shell(p, "inicio");
 const { data: a } = await supabase.from("academy_aulas").select("*, academy_trilhas(id,titulo)").eq("id", qs("id")).maybeSingle();
 if (!a) { $("#t").textContent = "Aula não encontrada"; throw 0; }
 document.title = a.titulo + " · FourLab Academy";
 $("#t").textContent = a.titulo; $("#prof").textContent = a.professor || "";
-$("#trl").textContent = "Trilha · " + a.academy_trilhas.titulo; $("#trl").href = "trilha.html?id=" + a.trilha_id;
+$("#trl").textContent = "Trilha · " + a.academy_trilhas.titulo; $("#trl").href = "trilha?id=" + a.trilha_id;
 $("#video").innerHTML = a.panda_video_id ? `<iframe src="${pandaUrl(a.panda_video_id)}" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>` : '<span class="muted">Vídeo em processamento</span>';
 const [{ data: irmas }, { data: prog }] = await Promise.all([
   supabase.from("academy_aulas").select("id,titulo,duracao_seg").eq("trilha_id", a.trilha_id).eq("etapa", "publicado").order("ordem"),
@@ -30,7 +30,7 @@ const [{ data: irmas }, { data: prog }] = await Promise.all([
 const done = new Set((prog || []).filter((x) => x.concluida).map((x) => x.aula_id));
 const renderList = () => {
   $("#cnt").textContent = `${irmas.length} aulas · ${irmas.filter((x) => done.has(x.id)).length} concluídas`;
-  $("#lessons").innerHTML = irmas.map((x) => `<a class="les ${x.id === a.id ? "on" : ""}" href="aula.html?id=${x.id}" style="text-decoration:none"><span class="chk ${done.has(x.id) ? "done" : ""}"></span><span class="t">${esc(x.titulo)}</span><span class="d">${fmtDur(x.duracao_seg)}</span></a>`).join("");
+  $("#lessons").innerHTML = irmas.map((x) => `<a class="les ${x.id === a.id ? "on" : ""}" href="aula?id=${x.id}" style="text-decoration:none"><span class="chk ${done.has(x.id) ? "done" : ""}"></span><span class="t">${esc(x.titulo)}</span><span class="d">${fmtDur(x.duracao_seg)}</span></a>`).join("");
   $("#concl").textContent = done.has(a.id) ? "Concluída ✓" : "Marcar como concluída";
 };
 renderList();

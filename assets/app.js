@@ -47,9 +47,9 @@ const root = location.pathname.includes("/admin/") ? "../" : "./";
 // Protege a página: sem login → login; pendente → pendente; papel errado → início.
 export async function guard(roles) {
   const p = await getProfile();
-  if (!p) { location.replace(root + "login.html"); return null; }
-  if (p.status !== "aprovado") { location.replace(root + "pendente.html"); return null; }
-  if (roles && !roles.includes(p.role)) { location.replace(root + "inicio.html"); return null; }
+  if (!p) { location.replace(root + "login"); return null; }
+  if (p.status !== "aprovado") { location.replace(root + "pendente"); return null; }
+  if (roles && !roles.includes(p.role)) { location.replace(root + "inicio"); return null; }
   return p;
 }
 
@@ -57,14 +57,14 @@ export async function guard(roles) {
 export function shell(p, active) {
   const items = [
     ["Aprender"],
-    ["inicio.html", "Início", "home"],
-    ["artigos.html", "Artigos", "doc"],
-    ["certificados.html", "Certificados", "award"],
+    ["inicio", "Início", "home"],
+    ["artigos", "Artigos", "doc"],
+    ["certificados", "Certificados", "award"],
   ];
-  if (["comercial", "admin"].includes(p.role)) items.push(["Administração"], ["admin/aprovacoes.html", "Aprovações", "check"]);
+  if (["comercial", "admin"].includes(p.role)) items.push(["Administração"], ["admin/aprovacoes", "Aprovações", "check"]);
   if (["editor", "revisor", "admin"].includes(p.role)) {
     if (!items.some((i) => i[0] === "Administração")) items.push(["Administração"]);
-    items.push(["admin/conteudo.html", "Conteúdo", "edit"]);
+    items.push(["admin/conteudo", "Conteúdo", "edit"]);
   }
   const nav = items.map(([href, label, ic]) => (label === undefined
     ? `<div class="nav-cap">${href}</div>`
@@ -77,7 +77,7 @@ export function shell(p, active) {
       </nav>
       <div class="sidebar-footer">${esc(p.nome)} · ${esc(p.role)}</div>
     </aside>`);
-  document.getElementById("sair").onclick = async () => { await supabase.auth.signOut(); location.href = root + "login.html"; };
+  document.getElementById("sair").onclick = async () => { await supabase.auth.signOut(); location.href = root + "login"; };
   const av = document.getElementById("meAv");
   if (av) av.textContent = initials(p.nome);
 }
