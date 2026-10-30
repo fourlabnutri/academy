@@ -2,22 +2,36 @@
 <body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
 <section class="view">
   <div class="page-head"><div><span class="ex" id="lvl"></span><h1 id="t" style="margin-top:6px;font-size:24px"></h1><div class="sub" id="src"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap" id="acts"><a class="btn btn-ghost btn-sm" href="artigos.html" style="text-decoration:none">Voltar</a></div></div>
+  <div id="extras" style="display:flex;flex-direction:column;gap:14px"></div>
   <div class="seg" id="modo" style="align-self:flex-start"><button class="on" data-m="lado">Lado a lado</button><button data-m="pt">Só tradução</button><button data-m="en">Só original</button></div>
   <div class="card reader" id="reader"><div id="en"><h4>Original</h4><div class="reader-text" id="ten"></div></div><div id="pt"><h4>Tradução · PT-BR</h4><div class="reader-text" id="tpt"></div></div></div>
   <div class="card" id="nota" hidden><h2>Nota da equipe FourLab</h2><p class="muted reader-text" id="tnota" style="margin-top:8px"></p></div>
 </section></main></div>
 <script type="module">
 import { supabase, $, $$, esc, guard, shell, qs } from "./assets/app.js";
+import { marked } from "https://esm.sh/marked@12.0.2";
+const md = (t) => marked.parse(esc(t || ""));
 const p = await guard(); if (!p) throw 0;
 shell(p, "artigos.html");
 const { data: a } = await supabase.from("academy_artigos").select("*").eq("id", qs("id")).maybeSingle();
 if (!a) { $("#t").textContent = "Artigo não encontrado"; throw 0; }
 document.title = (a.titulo_pt || a.titulo_original) + " · FourLab Academy";
 $("#t").textContent = a.titulo_pt || a.titulo_original;
-$("#lvl").textContent = [a.nivel_evidencia, a.tema].filter(Boolean).join(" · ");
+$("#lvl").textContent = [a.tipo_estudo, a.nivel_evidencia && "Evidência " + a.nivel_evidencia.toLowerCase(), a.tema].filter(Boolean).join(" · ");
 $("#src").textContent = [a.titulo_pt ? a.titulo_original : "", a.autores, a.periodico, a.ano].filter(Boolean).join(" · ");
-$("#ten").textContent = a.texto_original || "Texto original disponível no PDF.";
-$("#tpt").textContent = a.texto_pt || a.resumo_pt || "Tradução em preparação.";
+$("#ten").innerHTML = a.texto_original ? md(a.texto_original) : "<p class='muted'>Texto original disponível no PDF.</p>";
+$("#tpt").innerHTML = md(a.texto_pt || a.resumo_pt || "Tradução em preparação.");
+if (!a.texto_original) { $("#en").hidden = true; $("#modo").hidden = true; $("#reader").style.gridTemplateColumns = "1fr"; }
+const x = a.extras || {}, np = x.na_pratica || {};
+const lab = { dose: "Dose", timing: "Timing", populacao: "População", quando_indicar: "Quando indicar", cuidados: "Cuidados" };
+$("#extras").innerHTML = `
+  ${a.resumo_pt ? `<div class="card art-sum"><h2>Resumo em 1 minuto</h2><p>${esc(a.resumo_pt)}</p></div>` : ""}
+  ${(x.numeros || []).length ? `<div class="art-nums">${x.numeros.map((n) => `<div class="card"><b>${esc(n.valor)}</b><span>${esc(n.rotulo)}</span></div>`).join("")}</div>` : ""}
+  <div class="art-grid">
+    ${(x.pontos_chave || []).length ? `<div class="card"><h2>Pontos-chave</h2><ul class="art-list">${x.pontos_chave.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></div>` : ""}
+    ${Object.values(np).some(Boolean) ? `<div class="card"><h2>Na prática para o prescritor</h2><dl class="art-dl">${Object.keys(lab).filter((k) => np[k]).map((k) => `<dt>${lab[k]}</dt><dd>${esc(np[k])}</dd>`).join("")}</dl></div>` : ""}
+  </div>
+  ${(x.tags || []).length ? `<div class="art-tags">${x.tags.map((t) => `<span class="pill">${esc(t)}</span>`).join("")}</div>` : ""}`;
 if (a.nota_fourlab) { $("#nota").hidden = false; $("#tnota").textContent = a.nota_fourlab; }
 if (a.link_original) $("#acts").insertAdjacentHTML("beforeend", `<a class="btn btn-ghost btn-sm" href="${esc(a.link_original)}" target="_blank" rel="noopener" style="text-decoration:none">Página do estudo</a>`);
 if (a.pdf_path) {

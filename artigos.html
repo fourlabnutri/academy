@@ -10,7 +10,7 @@ import { supabase, $, esc, guard, shell } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
 shell(p, "artigos.html");
 const [{ data }, { data: salvos }] = await Promise.all([
-  supabase.from("academy_artigos").select("id,titulo_pt,titulo_original,autores,periodico,ano,nivel_evidencia,tema,resumo_pt,publicado_em").eq("etapa", "publicado").order("publicado_em", { ascending: false }),
+  supabase.from("academy_artigos").select("id,titulo_pt,titulo_original,autores,periodico,ano,nivel_evidencia,tipo_estudo,tema,resumo_pt,publicado_em").eq("etapa", "publicado").order("publicado_em", { ascending: false }),
   supabase.from("academy_artigos_salvos").select("artigo_id").eq("user_id", p.id),
 ]);
 const arts = data || [], sv = new Set((salvos || []).map((s) => s.artigo_id));
@@ -23,7 +23,7 @@ const novo = (d) => d && Date.now() - new Date(d) < 30 * 864e5;
 function render() {
   const q = $("#q").value.toLowerCase();
   const list = arts.filter((a) => (tema === "Todos" || (tema === "Salvos" ? sv.has(a.id) : a.tema === tema)) && (!q || JSON.stringify(a).toLowerCase().includes(q)));
-  $("#arts").innerHTML = list.map((a) => `<article class="card art"><div class="lvl"><b>${esc(a.nivel_evidencia || "—")}</b><span>${esc(a.tema || "")}</span></div>
+  $("#arts").innerHTML = list.map((a) => `<article class="card art"><div class="lvl"><b>${esc(a.tipo_estudo || a.nivel_evidencia || "—")}</b><span>${esc(a.tema || "")}</span></div>
     <div style="min-width:0"><h3>${esc(a.titulo_pt || a.titulo_original)} ${novo(a.publicado_em) ? '<span class="pill new">Novo</span>' : ""}</h3><div class="src">${esc([a.autores, a.periodico, a.ano].filter(Boolean).join(" · "))}</div>${a.resumo_pt ? `<p class="tldr">${esc(a.resumo_pt)}</p>` : ""}</div>
     <div class="acts"><a class="btn btn-primary btn-sm" href="artigo.html?id=${a.id}" style="text-decoration:none">Ler</a><button class="btn btn-ghost btn-sm" data-s="${a.id}">${sv.has(a.id) ? "Salvo ✓" : "Salvar"}</button></div></article>`).join("") || '<div class="card empty">Nenhum artigo encontrado.</div>';
 }
