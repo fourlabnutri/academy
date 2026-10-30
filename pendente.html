@@ -1,0 +1,38 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Cadastro em análise · FourLab Academy</title></head>
+<body><div class="center-page"><div class="card" style="max-width:520px;width:100%;display:flex;flex-direction:column;gap:14px" id="box">
+  <img src="assets/logo-academy.png" alt="FourLab Academy" style="height:44px;align-self:flex-start">
+  <p class="muted">Carregando…</p>
+</div></div>
+<script type="module">
+import { supabase, $, esc, showMsg, getProfile } from "./assets/app.js";
+const p = await getProfile();
+if (!p) location.replace("login.html");
+else if (p.status === "aprovado") location.replace("inicio.html");
+else {
+  const st = { pendente: ["warn", "Em análise"], recusado: ["bad", "Não aprovado"], suspenso: ["bad", "Suspenso"], sem_perfil: ["warn", "Cadastro incompleto"] }[p.status] || ["warn", p.status];
+  $("#box").innerHTML = `
+    <img src="assets/logo-academy.png" alt="FourLab Academy" style="height:44px;align-self:flex-start">
+    <div><span class="pill ${st[0]}">${st[1]}</span></div>
+    <h2 style="font-size:20px">Olá, ${esc((p.nome || "").split(" ")[0])}</h2>
+    ${p.status === "recusado" ? `<p class="muted">${esc(p.motivo_recusa || "Não conseguimos validar seu registro.")} Fale com a equipe FourLab.</p>`
+      : `<p class="muted">Estamos conferindo seu registro no conselho. Você recebe um e-mail quando o acesso for liberado.</p>
+      <div class="field"><label for="doc">Carteirinha do conselho (foto ou PDF)</label><input id="doc" type="file" accept="image/*,.pdf"></div>
+      <p class="muted" id="docst" style="font-size:12.5px">${p.comprovante_path ? "Comprovante já enviado. Pode enviar outro para substituir." : "Ainda falta enviar o comprovante."}</p>
+      <button class="btn btn-primary" id="up">Enviar comprovante</button>`}
+    <div class="msg" id="msg"></div>
+    <button class="btn btn-ghost btn-sm" id="sair" style="align-self:flex-start">Sair</button>`;
+  $("#sair").onclick = async () => { await supabase.auth.signOut(); location.href = "login.html"; };
+  const up = $("#up");
+  if (up) up.onclick = async () => {
+    const f = $("#doc").files[0];
+    if (!f) return showMsg($("#msg"), "Escolha o arquivo primeiro.");
+    if (f.size > 10e6) return showMsg($("#msg"), "Arquivo acima de 10 MB.");
+    const path = `${p.user.id}/carteirinha-${Date.now()}.${f.name.split(".").pop()}`;
+    const { error } = await supabase.storage.from("academy-comprovantes").upload(path, f);
+    if (error) return showMsg($("#msg"), "Falha no envio: " + error.message);
+    await supabase.from("academy_profiles").update({ comprovante_path: path }).eq("id", p.user.id);
+    showMsg($("#msg"), "Comprovante enviado. Agora é só aguardar a análise.", "ok");
+    $("#docst").textContent = "Comprovante enviado.";
+  };
+}
+</script></body></html>

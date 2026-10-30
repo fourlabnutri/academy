@@ -1,0 +1,46 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>FourLab Academy · Acesso para prescritores</title></head>
+<body><div class="center-page"><div class="card auth" style="max-width:1080px;width:100%">
+  <div class="l">
+    <img src="assets/logo-academy.png" alt="FourLab Academy" style="height:52px">
+    <span class="ex" style="color:#fff;opacity:.75">Exclusivo para prescritores</span>
+    <h1>Ciência aplicada ao endurance, com acesso gratuito</h1>
+    <ul><li>Aulas com especialistas em nutrição esportiva</li><li>Artigos recentes no original e traduzidos</li><li>Fichas técnicas e protocolos dos produtos</li><li>Certificado de horas por trilha</li></ul>
+  </div>
+  <form class="r" id="f">
+    <div><h2 style="font-size:20px">Solicitar acesso</h2><p class="muted" style="margin-top:4px">Já tem cadastro? <a href="login.html" style="color:var(--orange);font-weight:700">Entrar</a></p></div>
+    <div class="field"><label for="nome">Nome completo</label><input id="nome" required autocomplete="name"></div>
+    <div class="row2">
+      <div class="field"><label for="email">E-mail</label><input id="email" type="email" required autocomplete="email"></div>
+      <div class="field"><label for="senha">Senha (mín. 8)</label><input id="senha" type="password" minlength="8" required autocomplete="new-password"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="profissao">Profissão</label><select id="profissao"><option>Nutricionista</option><option>Médico(a)</option><option>Educador(a) físico(a)</option><option>Fisioterapeuta</option></select></div>
+      <div class="field"><label for="registro">Conselho e número</label><input id="registro" placeholder="CRN-3 45821" required></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="cidade">Cidade / UF</label><input id="cidade" placeholder="Campinas / SP" required></div>
+      <div class="field"><label for="modalidade">Modalidade que mais atende</label><select id="modalidade"><option>MTB</option><option>Corrida</option><option>Triathlon</option><option>Trail</option><option>Outra</option></select></div>
+    </div>
+    <div class="note">Depois do cadastro você envia a foto da carteirinha do conselho. O acesso é liberado após a conferência (em geral até 48h).</div>
+    <div class="msg" id="msg"></div>
+    <button class="btn btn-primary" type="submit" id="go">Criar cadastro</button>
+  </form>
+</div></div>
+<script type="module">
+import { supabase, $, showMsg } from "./assets/app.js";
+$("#f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const b = $("#go"); b.disabled = true;
+  const [conselho, ...num] = $("#registro").value.trim().split(/\s+/);
+  const [cidade, uf] = $("#cidade").value.split("/").map((s) => s.trim());
+  const { data, error } = await supabase.auth.signUp({
+    email: $("#email").value.trim(), password: $("#senha").value,
+    options: { emailRedirectTo: location.origin + location.pathname.replace(/index\.html$|$/, "pendente.html"),
+      data: { app: "academy", nome: $("#nome").value.trim(), profissao: $("#profissao").value, conselho, registro: num.join(" "), cidade, uf: uf || null, modalidade: $("#modalidade").value } },
+  });
+  b.disabled = false;
+  if (error) return showMsg($("#msg"), error.message.includes("registered") ? "Esse e-mail já tem cadastro. Use Entrar." : "Não foi possível cadastrar: " + error.message);
+  if (data.session) location.href = "pendente.html";
+  else showMsg($("#msg"), "Cadastro criado. Confirme pelo link que enviamos ao seu e-mail e depois entre para enviar a carteirinha.", "ok");
+});
+</script></body></html>

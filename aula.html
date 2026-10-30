@@ -1,0 +1,66 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Aula · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
+<section class="view">
+  <div class="page-head"><div><a class="ex" id="trl" style="text-decoration:none"></a><h1 id="t" style="margin-top:6px"></h1><div class="sub" id="prof"></div></div><button class="btn btn-ghost btn-sm" id="concl">Marcar como concluída</button></div>
+  <div class="player">
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+      <div class="video" id="video"></div>
+      <div class="card" style="padding:6px 22px 22px">
+        <div class="tabs" id="tabs"><button class="on" data-t="sobre">Sobre</button><button data-t="mat">Materiais</button><button data-t="duv">Dúvidas</button></div>
+        <div id="tab" style="padding-top:14px"></div>
+      </div>
+    </div>
+    <div class="card" style="padding:18px"><div class="card-head" style="margin-bottom:10px"><div><h2>Conteúdo da trilha</h2><p class="desc" id="cnt"></p></div></div><div id="lessons"></div></div>
+  </div>
+</section></main></div>
+<script type="module">
+import { supabase, $, $$, esc, guard, shell, qs, fmtDur, pandaUrl, showMsg } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+shell(p, "inicio.html");
+const { data: a } = await supabase.from("academy_aulas").select("*, academy_trilhas(id,titulo)").eq("id", qs("id")).maybeSingle();
+if (!a) { $("#t").textContent = "Aula não encontrada"; throw 0; }
+document.title = a.titulo + " · FourLab Academy";
+$("#t").textContent = a.titulo; $("#prof").textContent = a.professor || "";
+$("#trl").textContent = "Trilha · " + a.academy_trilhas.titulo; $("#trl").href = "trilha.html?id=" + a.trilha_id;
+$("#video").innerHTML = a.panda_video_id ? `<iframe src="${pandaUrl(a.panda_video_id)}" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>` : '<span class="muted">Vídeo em processamento</span>';
+const [{ data: irmas }, { data: prog }] = await Promise.all([
+  supabase.from("academy_aulas").select("id,titulo,duracao_seg").eq("trilha_id", a.trilha_id).eq("etapa", "publicado").order("ordem"),
+  supabase.from("academy_progresso").select("aula_id,concluida").eq("user_id", p.id),
+]);
+const done = new Set((prog || []).filter((x) => x.concluida).map((x) => x.aula_id));
+const renderList = () => {
+  $("#cnt").textContent = `${irmas.length} aulas · ${irmas.filter((x) => done.has(x.id)).length} concluídas`;
+  $("#lessons").innerHTML = irmas.map((x) => `<a class="les ${x.id === a.id ? "on" : ""}" href="aula.html?id=${x.id}" style="text-decoration:none"><span class="chk ${done.has(x.id) ? "done" : ""}"></span><span class="t">${esc(x.titulo)}</span><span class="d">${fmtDur(x.duracao_seg)}</span></a>`).join("");
+  $("#concl").textContent = done.has(a.id) ? "Concluída ✓" : "Marcar como concluída";
+};
+renderList();
+$("#concl").onclick = async () => {
+  const v = !done.has(a.id);
+  await supabase.from("academy_progresso").upsert({ user_id: p.id, aula_id: a.id, concluida: v, updated_at: new Date().toISOString() });
+  v ? done.add(a.id) : done.delete(a.id); renderList();
+};
+const mats = a.materiais || [];
+const TABS = {
+  sobre: () => `<p class="muted" style="white-space:pre-wrap">${esc(a.resumo || "")}</p>`,
+  mat: () => mats.length ? mats.map((m, i) => `<div class="li"><div class="t"><b>${esc(m.nome)}</b></div><button class="btn btn-ghost btn-sm" data-m="${i}">Abrir</button></div>`).join("") : '<p class="muted">Sem materiais nesta aula.</p>',
+  duv: () => `<div id="dlist" class="list"><p class="muted">Carregando…</p></div><div class="field" style="margin-top:14px"><label for="perg">Sua pergunta</label><textarea id="perg"></textarea></div><div class="msg" id="dmsg"></div><button class="btn btn-primary btn-sm" id="enviar" style="margin-top:10px">Enviar pergunta</button>`,
+};
+async function loadDuv() {
+  const { data } = await supabase.from("academy_duvidas").select("pergunta,resposta,created_at").eq("aula_id", a.id).order("created_at");
+  $("#dlist").innerHTML = (data || []).map((d) => `<div class="li" style="display:block"><b>${esc(d.pergunta)}</b><p class="muted" style="margin-top:6px">${d.resposta ? esc(d.resposta) : "Aguardando resposta da equipe."}</p></div>`).join("") || '<p class="muted">Nenhuma pergunta ainda.</p>';
+  $("#enviar").onclick = async () => {
+    const q = $("#perg").value.trim(); if (!q) return;
+    const { error } = await supabase.from("academy_duvidas").insert({ aula_id: a.id, user_id: p.id, pergunta: q });
+    if (error) return showMsg($("#dmsg"), "Não foi possível enviar.");
+    $("#perg").value = ""; loadDuv();
+  };
+}
+const show = (k) => { $$("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.t === k)); $("#tab").innerHTML = TABS[k](); if (k === "duv") loadDuv(); };
+$("#tabs").onclick = (e) => { const b = e.target.closest("button"); if (b) show(b.dataset.t); };
+$("#tab").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-m]"); if (!b) return;
+  const { data } = await supabase.storage.from("academy-materiais").createSignedUrl(mats[b.dataset.m].path, 600);
+  if (data) window.open(data.signedUrl, "_blank");
+});
+show("sobre");
+</script></body></html>

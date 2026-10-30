@@ -1,0 +1,20 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Trilha · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
+<section class="view"><div class="page-head"><div><span class="ex">Trilha</span><h1 id="t" style="margin-top:6px"></h1><div class="sub" id="d"></div></div></div>
+<div class="card" id="lista"></div></section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell, qs, fmtDur } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+shell(p, "inicio.html");
+const id = qs("id");
+const [{ data: t }, { data: aulas }, { data: prog }] = await Promise.all([
+  supabase.from("academy_trilhas").select("*").eq("id", id).maybeSingle(),
+  supabase.from("academy_aulas").select("id,titulo,professor,duracao_seg").eq("trilha_id", id).eq("etapa", "publicado").order("ordem"),
+  supabase.from("academy_progresso").select("aula_id,concluida").eq("user_id", p.id),
+]);
+if (!t) { $("#t").textContent = "Trilha não encontrada"; throw 0; }
+document.title = t.titulo + " · FourLab Academy";
+$("#t").textContent = t.titulo; $("#d").textContent = t.descricao || "";
+const done = new Set((prog || []).filter((x) => x.concluida).map((x) => x.aula_id));
+$("#lista").innerHTML = (aulas || []).map((a, i) => `<a class="les" href="aula.html?id=${a.id}" style="text-decoration:none"><span class="chk ${done.has(a.id) ? "done" : ""}"></span><span class="t">${i + 1}. ${esc(a.titulo)}<br><span class="muted" style="font-size:12px;font-weight:500">${esc(a.professor || "")}</span></span><span class="d">${fmtDur(a.duracao_seg)}</span></a>`).join("") || '<div class="empty">Nenhuma aula publicada ainda.</div>';
+</script></body></html>

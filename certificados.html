@@ -1,0 +1,13 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Certificados · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
+<section class="view">
+  <div class="page-head"><div><h1>Certificados</h1><div class="sub">Emitido automaticamente ao concluir todas as aulas de uma trilha.</div></div></div>
+  <div class="card tbl"><table><thead><tr><th>Trilha</th><th>Carga</th><th>Código</th><th>Emitido</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell, fmtDate } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+shell(p, "certificados.html");
+const { data } = await supabase.from("academy_certificados").select("codigo,emitido_em,academy_trilhas(titulo,carga_horas)").eq("user_id", p.id).order("emitido_em", { ascending: false });
+$("#rows").innerHTML = (data || []).map((c) => `<tr><td><b>${esc(c.academy_trilhas.titulo)}</b></td><td class="num">${c.academy_trilhas.carga_horas ? c.academy_trilhas.carga_horas + "h" : "—"}</td><td class="num">${esc(c.codigo)}</td><td>${fmtDate(c.emitido_em)}</td></tr>`).join("") || '<tr><td colspan="4" class="empty">Conclua todas as aulas de uma trilha para receber o certificado.</td></tr>';
+</script></body></html>

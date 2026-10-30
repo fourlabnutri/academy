@@ -1,0 +1,37 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css"><script src="../config.js"></script><title>Aprovações · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy · Administração</span><span class="avatar" id="meAv"></span></div>
+<section class="view">
+  <div class="page-head"><div><h1>Aprovação de prescritores</h1><div class="sub">Confira o registro no conselho antes de liberar o acesso.</div></div><div class="seg" id="seg"><button class="on" data-s="pendente">Pendentes</button><button data-s="aprovado">Aprovados</button><button data-s="recusado">Recusados</button></div></div>
+  <div class="card tbl"><table><thead><tr><th>Prescritor</th><th>Registro</th><th>Cidade</th><th>Modalidade</th><th>Cadastro</th><th>Comprovante</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+</section></main></div>
+<script type="module">
+import { supabase, $, $$, esc, guard, shell, fmtDate, initials } from "../assets/app.js";
+const p = await guard(["comercial", "admin"]); if (!p) throw 0;
+shell(p, "admin/aprovacoes.html");
+let status = "pendente", rows = [];
+async function load() {
+  const { data } = await supabase.from("academy_profiles").select("*").eq("role", "prescritor").eq("status", status).order("created_at", { ascending: false });
+  rows = data || [];
+  $("#rows").innerHTML = rows.map((r, i) => `<tr><td><div class="whocell"><span class="avatar">${initials(r.nome)}</span><div>${esc(r.nome)}<div class="muted" style="font-size:12px;font-weight:500">${esc(r.email)}</div></div></div></td>
+    <td class="num">${esc([r.conselho, r.registro].filter(Boolean).join(" "))}<div class="muted" style="font-size:12px">${esc(r.profissao || "")}</div></td><td>${esc([r.cidade, r.uf].filter(Boolean).join(" / "))}</td><td>${esc(r.modalidade || "")}</td><td class="muted">${fmtDate(r.created_at)}</td>
+    <td>${r.comprovante_path ? `<button class="btn btn-ghost btn-sm" data-doc="${i}">Ver arquivo</button>` : '<span class="pill warn">Não enviado</span>'}</td>
+    <td style="white-space:nowrap;text-align:right">${status !== "aprovado" ? `<button class="btn btn-primary btn-sm" data-ap="${i}">Aprovar</button>` : ""} ${status === "pendente" ? `<button class="btn btn-danger btn-sm" data-rec="${i}">Recusar</button>` : ""}</td></tr>`).join("")
+    || `<tr><td colspan="7" class="empty">Nenhum cadastro ${status === "pendente" ? "pendente" : status}.</td></tr>`;
+}
+$("#seg").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; status = b.dataset.s; $$("#seg button").forEach((x) => x.classList.toggle("on", x === b)); load(); };
+$("#rows").addEventListener("click", async (e) => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.doc) {
+    const { data } = await supabase.storage.from("academy-comprovantes").createSignedUrl(rows[t.dataset.doc].comprovante_path, 300);
+    if (data) window.open(data.signedUrl, "_blank");
+    return;
+  }
+  const r = rows[t.dataset.ap ?? t.dataset.rec];
+  const upd = t.dataset.ap !== undefined ? { status: "aprovado", motivo_recusa: null } : { status: "recusado", motivo_recusa: "Não conseguimos validar o registro no conselho." };
+  t.disabled = true;
+  const { error } = await supabase.from("academy_profiles").update(upd).eq("id", r.id);
+  if (error) { t.disabled = false; alert("Não foi possível salvar: " + error.message); return; }
+  load();
+});
+load();
+</script></body></html>

@@ -1,0 +1,72 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css"><script src="../config.js"></script><title>Conteúdo · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy · Administração</span><span class="avatar" id="meAv"></span></div>
+<section class="view">
+  <div class="page-head"><div><h1>Conteúdo</h1><div class="sub">Rascunho → revisão → publicado. Só o que está publicado aparece para os prescritores.</div></div><button class="btn btn-primary" id="novo">Novo</button></div>
+  <div class="seg" id="seg" style="align-self:flex-start"><button class="on" data-k="trilhas">Trilhas</button><button data-k="aulas">Aulas</button><button data-k="artigos">Artigos</button></div>
+  <div class="card tbl"><table><thead id="head"></thead><tbody id="rows"></tbody></table></div>
+  <form class="card" id="form" hidden style="display:flex;flex-direction:column;gap:14px"></form>
+</section></main></div>
+<script type="module">
+import { supabase, $, $$, esc, guard, shell, showMsg } from "../assets/app.js";
+const p = await guard(["editor", "revisor", "admin"]); if (!p) throw 0;
+shell(p, "admin/conteudo.html");
+const ETAPAS = [["rascunho", ""], ["em_revisao", "warn"], ["publicado", "ok"], ["arquivado", "bad"]];
+const etapaPill = (e) => `<span class="pill ${(ETAPAS.find((x) => x[0] === e) || [])[1] || ""}">${e.replace("_", " ")}</span>`;
+// campos de cada tipo: [coluna, rótulo, tipo]
+const SPEC = {
+  trilhas: { tabela: "academy_trilhas", ordem: "ordem", cols: ["titulo", "carga_horas"], campos: [["titulo", "Título"], ["slug", "Identificador (sem espaços)"], ["descricao", "Descrição", "area"], ["carga_horas", "Carga (horas)", "num"], ["ordem", "Ordem", "num"]] },
+  aulas: { tabela: "academy_aulas", ordem: "ordem", cols: ["titulo", "professor"], campos: [["trilha_id", "Trilha", "trilha"], ["titulo", "Título"], ["professor", "Professor"], ["panda_video_id", "ID do vídeo no Panda"], ["duracao_seg", "Duração (segundos)", "num"], ["resumo", "Sobre a aula", "area"], ["ordem", "Ordem na trilha", "num"]] },
+  artigos: { tabela: "academy_artigos", ordem: "created_at", cols: ["titulo_pt", "tema"], campos: [["titulo_original", "Título original"], ["titulo_pt", "Título em português"], ["autores", "Autores"], ["periodico", "Periódico"], ["ano", "Ano", "num"], ["doi", "DOI"], ["link_original", "Link do estudo"], ["nivel_evidencia", "Nível de evidência (ECR, RS, Meta-análise…)"], ["tema", "Tema"], ["resumo_pt", "Resumo em português", "area"], ["texto_original", "Texto original", "area"], ["texto_pt", "Tradução", "area"], ["nota_fourlab", "Nota da equipe FourLab", "area"], ["pdf", "PDF original", "pdf"]] },
+};
+let kind = "trilhas", rows = [], trilhas = [];
+async function load() {
+  const s = SPEC[kind];
+  ({ data: trilhas } = await supabase.from("academy_trilhas").select("id,titulo").order("ordem"));
+  const { data } = await supabase.from(s.tabela).select("*").order(s.ordem);
+  rows = data || [];
+  $("#head").innerHTML = `<tr><th>Título</th><th>${kind === "aulas" ? "Professor" : kind === "artigos" ? "Tema" : "Carga"}</th><th>Etapa</th><th></th></tr>`;
+  $("#rows").innerHTML = rows.map((r, i) => `<tr><td><b>${esc(r[s.cols[0]] || r.titulo_original || "(sem título)")}</b>${kind === "aulas" ? `<div class="muted" style="font-size:12px">${esc((trilhas.find((t) => t.id === r.trilha_id) || {}).titulo || "")}</div>` : ""}</td><td>${esc(r[s.cols[1]] ?? "")}</td><td>${etapaPill(r.etapa)}</td><td style="text-align:right"><button class="btn btn-ghost btn-sm" data-ed="${i}">Editar</button></td></tr>`).join("") || '<tr><td colspan="4" class="empty">Nada cadastrado ainda.</td></tr>';
+}
+function openForm(r = {}) {
+  const s = SPEC[kind], f = $("#form");
+  // revisor aprova (em_revisao → publicado); publicar é do admin e do revisor; editor envia para revisão
+  const podePublicar = ["admin", "revisor"].includes(p.role);
+  f.innerHTML = `<h2>${r.id ? "Editar" : "Novo"}</h2>` + s.campos.map(([c, l, t]) => {
+    const v = esc(r[c] ?? "");
+    if (t === "area") return `<div class="field"><label for="f_${c}">${l}</label><textarea id="f_${c}">${v}</textarea></div>`;
+    if (t === "trilha") return `<div class="field"><label for="f_${c}">${l}</label><select id="f_${c}">${trilhas.map((x) => `<option value="${x.id}" ${x.id === r[c] ? "selected" : ""}>${esc(x.titulo)}</option>`).join("")}</select></div>`;
+    if (t === "pdf") return `<div class="field"><label for="f_pdf">${l}${r.pdf_path ? " (já enviado: " + esc(r.pdf_path.split("/").pop()) + ")" : ""}</label><input id="f_pdf" type="file" accept=".pdf"></div>`;
+    return `<div class="field"><label for="f_${c}">${l}</label><input id="f_${c}" ${t === "num" ? 'type="number" step="any"' : ""} value="${v}"></div>`;
+  }).join("") + `<div class="field"><label for="f_etapa">Etapa</label><select id="f_etapa">${ETAPAS.filter(([e]) => podePublicar || e !== "publicado" || r.etapa === "publicado").map(([e]) => `<option value="${e}" ${e === (r.etapa || "rascunho") ? "selected" : ""}>${e.replace("_", " ")}</option>`).join("")}</select></div>
+    <div class="msg" id="fmsg"></div><div style="display:flex;gap:8px"><button class="btn btn-primary" type="submit">Salvar</button><button class="btn btn-ghost" type="button" id="cancel">Cancelar</button></div>`;
+  f.hidden = false; f.scrollIntoView({ behavior: "smooth" });
+  $("#cancel").onclick = () => (f.hidden = true);
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const obj = {};
+    for (const [c, , t] of s.campos) {
+      if (t === "pdf") continue;
+      const v = $("#f_" + c).value.trim();
+      obj[c] = v === "" ? null : t === "num" ? Number(v) : v;
+    }
+    obj.etapa = $("#f_etapa").value;
+    if (kind === "artigos" && obj.etapa === "publicado" && !r.publicado_em) obj.publicado_em = new Date().toISOString();
+    if (obj.etapa === "publicado" && kind !== "trilhas") obj.revisado_por = p.id;
+    const pdf = kind === "artigos" && $("#f_pdf").files[0];
+    if (pdf) {
+      const path = `${Date.now()}-${pdf.name.replace(/[^\w.-]/g, "_")}`;
+      const { error } = await supabase.storage.from("academy-artigos").upload(path, pdf);
+      if (error) return showMsg($("#fmsg"), "Falha ao enviar o PDF: " + error.message);
+      obj.pdf_path = path;
+    }
+    const q = r.id ? supabase.from(s.tabela).update(obj).eq("id", r.id) : supabase.from(s.tabela).insert(obj);
+    const { error } = await q;
+    if (error) return showMsg($("#fmsg"), "Não foi possível salvar: " + error.message);
+    f.hidden = true; load();
+  };
+}
+$("#seg").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; kind = b.dataset.k; $$("#seg button").forEach((x) => x.classList.toggle("on", x === b)); $("#form").hidden = true; load(); };
+$("#novo").onclick = () => openForm();
+$("#rows").addEventListener("click", (e) => { const b = e.target.closest("[data-ed]"); if (b) openForm(rows[b.dataset.ed]); });
+load();
+</script></body></html>

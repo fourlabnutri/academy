@@ -1,0 +1,30 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Entrar · FourLab Academy</title></head>
+<body><div class="center-page"><form class="card" id="f" style="max-width:420px;width:100%;display:flex;flex-direction:column;gap:14px">
+  <img src="assets/logo-academy.png" alt="FourLab Academy" style="height:44px;align-self:flex-start">
+  <h2 style="font-size:20px">Entrar</h2>
+  <div class="field"><label for="email">E-mail</label><input id="email" type="email" required autocomplete="email"></div>
+  <div class="field"><label for="senha">Senha</label><input id="senha" type="password" required autocomplete="current-password"></div>
+  <div class="msg" id="msg"></div>
+  <button class="btn btn-primary" type="submit">Entrar</button>
+  <div style="display:flex;justify-content:space-between;font-size:13px;flex-wrap:wrap;gap:8px">
+    <button type="button" class="linkbtn" id="reset">Esqueci a senha</button>
+    <a href="index.html" style="color:var(--orange);font-weight:700">Solicitar acesso</a>
+  </div>
+</form></div>
+<script type="module">
+import { supabase, $, showMsg, getProfile } from "./assets/app.js";
+const go = async () => { const p = await getProfile(); if (p) location.replace(p.status === "aprovado" ? "inicio.html" : "pendente.html"); };
+go();
+$("#f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const { error } = await supabase.auth.signInWithPassword({ email: $("#email").value.trim(), password: $("#senha").value });
+  if (error) return showMsg($("#msg"), "E-mail ou senha incorretos.");
+  go();
+});
+$("#reset").onclick = async () => {
+  const email = $("#email").value.trim();
+  if (!email) return showMsg($("#msg"), "Digite seu e-mail acima e clique de novo.");
+  await supabase.auth.resetPasswordForEmail(email, { redirectTo: location.href.replace(/login\.html.*/, "senha.html") });
+  showMsg($("#msg"), "Se o e-mail tiver cadastro, enviamos um link para criar nova senha.", "ok");
+};
+</script></body></html>
