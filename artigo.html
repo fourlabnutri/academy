@@ -53,7 +53,7 @@ let salvo = !!s;
 const acts = $("#acts");
 acts.innerHTML = `<button class="btn btn-primary btn-sm" id="salvar"></button>`
   + (a.link_original ? `<a class="btn btn-ghost btn-sm" href="${esc(a.link_original)}" target="_blank" rel="noopener">Estudo original ↗</a>` : "")
-  + (a.pdf_path ? '<button class="btn btn-ghost btn-sm" id="pdf">PDF</button>' : "");
+  + (a.pdf_path ? '<button class="btn btn-ghost btn-sm" id="pdf">Ver PDF original</button><button class="btn btn-ghost btn-sm" id="pdfdl">Baixar PDF</button>' : "");
 const paint = () => { $("#salvar").textContent = salvo ? "Salvo ★" : "Salvar"; };
 paint();
 $("#salvar").onclick = async () => {
@@ -61,7 +61,10 @@ $("#salvar").onclick = async () => {
   else await supabase.from("academy_artigos_salvos").insert({ user_id: p.id, artigo_id: a.id });
   salvo = !salvo; paint();
 };
-if (a.pdf_path) $("#pdf").onclick = async () => { const { data } = await supabase.storage.from("academy-artigos").createSignedUrl(a.pdf_path, 600); if (data) window.open(data.signedUrl, "_blank"); };
+if (a.pdf_path) {
+  const abrir = async (dl) => { const w = window.open("", "_blank"); const { data } = await supabase.storage.from("academy-artigos").createSignedUrl(a.pdf_path, 600, dl ? { download: `${a.slug}.pdf` } : undefined); if (data) w.location = data.signedUrl; else w.close(); };
+  $("#pdf").onclick = () => abrir(false); $("#pdfdl").onclick = () => abrir(true);
+}
 
 /* aba Resumo */
 $("#resumo").innerHTML = `

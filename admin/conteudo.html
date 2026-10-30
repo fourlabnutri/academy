@@ -5,6 +5,8 @@
   <div class="seg" id="seg" style="align-self:flex-start"><button class="on" data-k="trilhas">Trilhas</button><button data-k="aulas">Aulas</button><button data-k="artigos">Artigos</button></div>
   <div class="card tbl"><table><thead id="head"></thead><tbody id="rows"></tbody></table></div>
   <form class="card" id="form" hidden style="display:flex;flex-direction:column;gap:14px"></form>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><h2>PDFs dos artigos</h2><p class="muted">Selecione os PDFs (ex.: amino2.pdf). Cada arquivo é ligado ao artigo de mesmo nome.</p>
+    <input type="file" id="pdfs" accept="application/pdf" multiple><div class="msg" id="pdfmsg"></div></div>
 </section></main></div>
 <script type="module">
 import { supabase, $, $$, esc, guard, shell, showMsg } from "../assets/app.js";
@@ -69,4 +71,17 @@ $("#seg").onclick = (e) => { const b = e.target.closest("button"); if (!b) retur
 $("#novo").onclick = () => openForm();
 $("#rows").addEventListener("click", (e) => { const b = e.target.closest("[data-ed]"); if (b) openForm(rows[b.dataset.ed]); });
 load();
+
+$("#pdfs").onchange = async (e) => {
+  const fs = [...e.target.files]; let ok = 0, sem = [];
+  for (const [i, f] of fs.entries()) {
+    showMsg($("#pdfmsg"), `Enviando ${i + 1}/${fs.length}: ${f.name}`, "ok");
+    const slug = f.name.replace(/\.pdf$/i, "").toLowerCase();
+    const { error } = await supabase.storage.from("academy-artigos").upload(`${slug}.pdf`, f, { upsert: true, contentType: "application/pdf" });
+    if (error) { sem.push(f.name + " (" + error.message + ")"); continue; }
+    await supabase.from("academy_artigos").update({ pdf_path: `${slug}.pdf` }).eq("slug", slug);
+    ok++;
+  }
+  showMsg($("#pdfmsg"), `${ok} PDF(s) enviados.${sem.length ? " Falharam: " + sem.join(", ") : ""}`, sem.length ? "err" : "ok");
+};
 </script></body></html>
