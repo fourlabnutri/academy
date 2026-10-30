@@ -1,38 +1,51 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Artigos · FourLab Academy</title></head>
-<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb" id="crumb">Biblioteca científica</span><span class="avatar" id="meAv"></span></div>
 <section class="view">
-  <div class="page-head"><div><h1>Artigos</h1><div class="sub">Estudos recentes selecionados pela equipe, com resumo em português, tradução e acesso ao original.</div></div></div>
-  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><input class="search" id="q" placeholder="Buscar por tema, autor ou periódico"><div class="seg" id="temas"></div></div>
-  <div style="display:flex;flex-direction:column;gap:14px" id="arts"><p class="muted">Carregando…</p></div>
+  <header class="lib-head" id="head"></header>
+  <div class="lib-tools"><input class="search" id="q" placeholder="Buscar um estudo, autor ou assunto"><div class="seg" id="filtro"><button class="on" data-f="todos">Todos</button><button data-f="salvos">Salvos</button></div></div>
+  <div id="out"></div>
 </section></main></div>
 <script type="module">
-import { supabase, $, esc, guard, shell } from "./assets/app.js";
+import { supabase, $, esc, guard, shell, qs } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
 shell(p, "artigos");
+const slugify = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 const [{ data }, { data: salvos }] = await Promise.all([
-  supabase.from("academy_artigos").select("id,titulo_pt,titulo_original,autores,periodico,ano,nivel_evidencia,tipo_estudo,tema,resumo_pt,publicado_em").eq("etapa", "publicado").order("publicado_em", { ascending: false }),
+  supabase.from("academy_artigos").select("id,slug,titulo_pt,titulo_original,autores,periodico,ano,tipo_estudo,tema,publicado_em").eq("etapa", "publicado").order("slug"),
   supabase.from("academy_artigos_salvos").select("artigo_id").eq("user_id", p.id),
 ]);
 const arts = data || [], sv = new Set((salvos || []).map((s) => s.artigo_id));
-let tema = "Todos";
-const temas = ["Todos", "Salvos", ...new Set(arts.map((a) => a.tema).filter(Boolean))];
-$("#temas").innerHTML = temas.map((t) => `<button class="${t === tema ? "on" : ""}">${esc(t)}</button>`).join("");
-$("#temas").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; tema = b.textContent; [...$("#temas").children].forEach((x) => x.classList.toggle("on", x === b)); render(); };
-$("#q").oninput = render;
-const novo = (d) => d && Date.now() - new Date(d) < 30 * 864e5;
-function render() {
-  const q = $("#q").value.toLowerCase();
-  const list = arts.filter((a) => (tema === "Todos" || (tema === "Salvos" ? sv.has(a.id) : a.tema === tema)) && (!q || JSON.stringify(a).toLowerCase().includes(q)));
-  $("#arts").innerHTML = list.map((a) => `<article class="card art"><div class="lvl"><b>${esc(a.tipo_estudo || a.nivel_evidencia || "—")}</b><span>${esc(a.tema || "")}</span></div>
-    <div style="min-width:0"><h3>${esc(a.titulo_pt || a.titulo_original)} ${novo(a.publicado_em) ? '<span class="pill new">Novo</span>' : ""}</h3><div class="src">${esc([a.autores, a.periodico, a.ano].filter(Boolean).join(" · "))}</div>${a.resumo_pt ? `<p class="tldr">${esc(a.resumo_pt)}</p>` : ""}</div>
-    <div class="acts"><a class="btn btn-primary btn-sm" href="artigo?id=${a.id}" style="text-decoration:none">Ler</a><button class="btn btn-ghost btn-sm" data-s="${a.id}">${sv.has(a.id) ? "Salvo ✓" : "Salvar"}</button></div></article>`).join("") || '<div class="card empty">Nenhum artigo encontrado.</div>';
+const temas = [...new Set(arts.map((a) => a.tema).filter(Boolean))].sort();
+const temaAtual = temas.find((t) => slugify(t) === qs("tema"));
+let filtro = "todos";
+
+const capa = (a) => `<div class="cover"><img src="assets/capas/${esc(a.slug)}.png" alt="" loading="lazy" onerror="this.remove()"><span class="cover-tema">${esc(a.tema || "")}</span></div>`;
+const card = (a) => `<a class="acard" href="artigo?id=${a.id}">${capa(a)}
+  <div class="acard-body"><span class="chip">${esc(a.tipo_estudo || "Estudo")}</span>
+  <h3>${esc(a.titulo_pt || a.titulo_original)}</h3>
+  <p class="acard-src">${esc([a.periodico, a.ano].filter(Boolean).join(" · "))}</p></div>
+  ${sv.has(a.id) ? '<span class="acard-saved" title="Salvo">★</span>' : ""}</a>`;
+
+if (temaAtual) {
+  $("#crumb").innerHTML = `<a href="artigos">Biblioteca científica</a> / ${esc(temaAtual)}`;
+  $("#head").innerHTML = `<div class="tema-hero" style="--img:url('assets/temas/${slugify(temaAtual)}.jpg')"><span class="tema-pill">${esc(temaAtual)}</span></div>`;
+} else {
+  $("#head").innerHTML = `<h1>Biblioteca científica</h1><p class="sub">Estudos selecionados pela equipe FourLab, traduzidos e resumidos para a prática clínica.</p>`;
 }
-$("#arts").addEventListener("click", async (e) => {
-  const b = e.target.closest("[data-s]"); if (!b) return;
-  const id = b.dataset.s;
-  if (sv.has(id)) { await supabase.from("academy_artigos_salvos").delete().match({ user_id: p.id, artigo_id: id }); sv.delete(id); }
-  else { await supabase.from("academy_artigos_salvos").insert({ user_id: p.id, artigo_id: id }); sv.add(id); }
-  render();
-});
+$("#q").oninput = render;
+$("#filtro").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; filtro = b.dataset.f; [...$("#filtro").children].forEach((x) => x.classList.toggle("on", x === b)); render(); };
+
+function render() {
+  const q = $("#q").value.trim().toLowerCase();
+  const list = arts.filter((a) => (!temaAtual || a.tema === temaAtual) && (filtro !== "salvos" || sv.has(a.id)) && (!q || JSON.stringify(a).toLowerCase().includes(q)));
+  if (!temaAtual && !q && filtro === "todos") {
+    $("#out").innerHTML = `<div class="tema-grid">${temas.map((t) => {
+      const n = arts.filter((a) => a.tema === t).length;
+      return `<a class="tema-tile" href="artigos?tema=${slugify(t)}" style="--img:url('assets/temas/${slugify(t)}.jpg')"><span class="tema-pill">${esc(t)}</span><span class="tema-n">${n} ${n === 1 ? "estudo" : "estudos"}</span></a>`;
+    }).join("")}</div>`;
+    return;
+  }
+  $("#out").innerHTML = list.length ? `<div class="acard-grid">${list.map(card).join("")}</div>` : '<div class="card empty">Nenhum estudo encontrado.</div>';
+}
 render();
 </script></body></html>

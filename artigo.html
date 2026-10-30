@@ -1,48 +1,78 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Artigo · FourLab Academy</title></head>
-<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
-<section class="view">
-  <div class="page-head"><div><span class="ex" id="lvl"></span><h1 id="t" style="margin-top:6px;font-size:24px"></h1><div class="sub" id="src"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap" id="acts"><a class="btn btn-ghost btn-sm" href="artigos" style="text-decoration:none">Voltar</a></div></div>
-  <div id="extras" style="display:flex;flex-direction:column;gap:14px"></div>
-  <div class="seg" id="modo" style="align-self:flex-start"><button class="on" data-m="lado">Lado a lado</button><button data-m="pt">Só tradução</button><button data-m="en">Só original</button></div>
-  <div class="card reader" id="reader"><div id="en"><h4>Original</h4><div class="reader-text" id="ten"></div></div><div id="pt"><h4>Tradução · PT-BR</h4><div class="reader-text" id="tpt"></div></div></div>
-  <div class="card" id="nota" hidden><h2>Nota da equipe FourLab</h2><p class="muted reader-text" id="tnota" style="margin-top:8px"></p></div>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb" id="crumb"><a href="artigos">Biblioteca científica</a></span><span class="avatar" id="meAv"></span></div>
+<section class="view read">
+  <div class="cover cover-lg" id="cover"></div>
+  <header class="read-head">
+    <div class="chips" id="chips"></div>
+    <h1 id="t"></h1>
+    <p class="read-src" id="src"></p>
+    <div class="read-acts" id="acts"></div>
+  </header>
+  <nav class="tabs" id="tabs"><button class="on" data-t="resumo">Resumo</button><button data-t="pratica">Na prática</button><button data-t="texto">Texto completo</button></nav>
+  <div id="resumo" class="tab"></div>
+  <div id="pratica" class="tab" hidden></div>
+  <div id="texto" class="tab" hidden>
+    <div class="seg" id="lang"><button class="on" data-l="pt">Português</button><button data-l="en">Original</button></div>
+    <article class="prose" id="prose"></article>
+  </div>
 </section></main></div>
 <script type="module">
 import { supabase, $, $$, esc, guard, shell, qs } from "./assets/app.js";
 import { marked } from "https://esm.sh/marked@12.0.2";
 const md = (t) => marked.parse(esc(t || ""));
+const slugify = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 const p = await guard(); if (!p) throw 0;
 shell(p, "artigos");
 const { data: a } = await supabase.from("academy_artigos").select("*").eq("id", qs("id")).maybeSingle();
 if (!a) { $("#t").textContent = "Artigo não encontrado"; throw 0; }
-document.title = (a.titulo_pt || a.titulo_original) + " · FourLab Academy";
-$("#t").textContent = a.titulo_pt || a.titulo_original;
-$("#lvl").textContent = [a.tipo_estudo, a.nivel_evidencia && "Evidência " + a.nivel_evidencia.toLowerCase(), a.tema].filter(Boolean).join(" · ");
-$("#src").textContent = [a.titulo_pt ? a.titulo_original : "", a.autores, a.periodico, a.ano].filter(Boolean).join(" · ");
-$("#ten").innerHTML = a.texto_original ? md(a.texto_original) : "<p class='muted'>Texto original disponível no PDF.</p>";
-$("#tpt").innerHTML = md(a.texto_pt || a.resumo_pt || "Tradução em preparação.");
-if (!a.texto_original) { $("#en").hidden = true; $("#modo").hidden = true; $("#reader").style.gridTemplateColumns = "1fr"; }
 const x = a.extras || {}, np = x.na_pratica || {};
-const lab = { dose: "Dose", timing: "Timing", populacao: "População", quando_indicar: "Quando indicar", cuidados: "Cuidados" };
-$("#extras").innerHTML = `
-  ${a.resumo_pt ? `<div class="card art-sum"><h2>Resumo em 1 minuto</h2><p>${esc(a.resumo_pt)}</p></div>` : ""}
-  ${(x.numeros || []).length ? `<div class="art-nums">${x.numeros.map((n) => `<div class="card"><b>${esc(n.valor)}</b><span>${esc(n.rotulo)}</span></div>`).join("")}</div>` : ""}
-  <div class="art-grid">
-    ${(x.pontos_chave || []).length ? `<div class="card"><h2>Pontos-chave</h2><ul class="art-list">${x.pontos_chave.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></div>` : ""}
-    ${Object.values(np).some(Boolean) ? `<div class="card"><h2>Na prática para o prescritor</h2><dl class="art-dl">${Object.keys(lab).filter((k) => np[k]).map((k) => `<dt>${lab[k]}</dt><dd>${esc(np[k])}</dd>`).join("")}</dl></div>` : ""}
-  </div>
-  ${(x.tags || []).length ? `<div class="art-tags">${x.tags.map((t) => `<span class="pill">${esc(t)}</span>`).join("")}</div>` : ""}`;
-if (a.nota_fourlab) { $("#nota").hidden = false; $("#tnota").textContent = a.nota_fourlab; }
-if (a.link_original) $("#acts").insertAdjacentHTML("beforeend", `<a class="btn btn-ghost btn-sm" href="${esc(a.link_original)}" target="_blank" rel="noopener" style="text-decoration:none">Página do estudo</a>`);
-if (a.pdf_path) {
-  $("#acts").insertAdjacentHTML("beforeend", '<button class="btn btn-primary btn-sm" id="pdf">PDF original</button>');
-  $("#pdf").onclick = async () => { const { data } = await supabase.storage.from("academy-artigos").createSignedUrl(a.pdf_path, 600); if (data) window.open(data.signedUrl, "_blank"); };
-}
-$("#modo").onclick = (e) => {
+document.title = (a.titulo_pt || a.titulo_original) + " · FourLab Academy";
+if (a.tema) $("#crumb").innerHTML += ` / <a href="artigos?tema=${slugify(a.tema)}">${esc(a.tema)}</a>`;
+$("#cover").innerHTML = `<img src="assets/capas/${esc(a.slug)}.png" alt="" onerror="this.parentNode.classList.add('cover-empty');this.remove()">`;
+$("#chips").innerHTML = [a.tipo_estudo, a.nivel_evidencia && "Evidência " + a.nivel_evidencia.toLowerCase(), a.ano].filter(Boolean).map((c, i) => `<span class="chip${i ? " chip-ghost" : ""}">${esc(c)}</span>`).join("");
+$("#t").textContent = a.titulo_pt || a.titulo_original;
+$("#src").textContent = [a.autores, a.periodico].filter(Boolean).join(" · ");
+
+/* ações */
+const { data: s } = await supabase.from("academy_artigos_salvos").select("artigo_id").match({ user_id: p.id, artigo_id: a.id }).maybeSingle();
+let salvo = !!s;
+const acts = $("#acts");
+acts.innerHTML = `<button class="btn btn-primary btn-sm" id="salvar"></button>`
+  + (a.link_original ? `<a class="btn btn-ghost btn-sm" href="${esc(a.link_original)}" target="_blank" rel="noopener">Estudo original ↗</a>` : "")
+  + (a.pdf_path ? '<button class="btn btn-ghost btn-sm" id="pdf">PDF</button>' : "");
+const paint = () => { $("#salvar").textContent = salvo ? "Salvo ★" : "Salvar"; };
+paint();
+$("#salvar").onclick = async () => {
+  if (salvo) await supabase.from("academy_artigos_salvos").delete().match({ user_id: p.id, artigo_id: a.id });
+  else await supabase.from("academy_artigos_salvos").insert({ user_id: p.id, artigo_id: a.id });
+  salvo = !salvo; paint();
+};
+if (a.pdf_path) $("#pdf").onclick = async () => { const { data } = await supabase.storage.from("academy-artigos").createSignedUrl(a.pdf_path, 600); if (data) window.open(data.signedUrl, "_blank"); };
+
+/* aba Resumo */
+$("#resumo").innerHTML = `
+  ${(x.numeros || []).length ? `<div class="stats">${x.numeros.map((n) => `<div class="stat"><b>${esc(n.valor)}</b><span>${esc(n.rotulo)}</span></div>`).join("")}</div>` : ""}
+  ${a.resumo_pt ? `<section class="block"><h2>Em 1 minuto</h2><p class="lead">${esc(a.resumo_pt)}</p></section>` : ""}
+  ${(x.pontos_chave || []).length ? `<section class="block"><h2>Pontos-chave</h2><ol class="keys">${x.pontos_chave.map((t) => `<li>${esc(t)}</li>`).join("")}</ol></section>` : ""}
+  ${(x.tags || []).length ? `<div class="tags">${x.tags.map((t) => `<span>#${esc(t)}</span>`).join("")}</div>` : ""}`;
+
+/* aba Na prática */
+const lab = { dose: "Dose", timing: "Quando tomar", populacao: "Para quem", quando_indicar: "Quando indicar", cuidados: "Cuidados" };
+const ks = Object.keys(lab).filter((k) => np[k]);
+$("#pratica").innerHTML = ks.length
+  ? `<div class="pgrid">${ks.map((k) => `<div class="pcard${k === "cuidados" ? " warn" : ""}"><h3>${lab[k]}</h3><p>${esc(np[k])}</p></div>`).join("")}</div>`
+  : '<div class="card empty">Sem orientações práticas para este estudo.</div>';
+
+/* aba Texto */
+let lang = "pt";
+const paintText = () => { $("#prose").innerHTML = lang === "en" ? (a.texto_original ? md(a.texto_original) : "<p class='muted'>Texto original disponível no estudo original.</p>") : md(a.texto_pt || "Tradução em preparação."); };
+if (!a.texto_original) $("#lang").hidden = true;
+paintText();
+$("#lang").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; lang = b.dataset.l; $$("#lang button").forEach((y) => y.classList.toggle("on", y === b)); paintText(); };
+
+$("#tabs").onclick = (e) => {
   const b = e.target.closest("button"); if (!b) return;
-  $$("#modo button").forEach((x) => x.classList.toggle("on", x === b));
-  const m = b.dataset.m;
-  $("#en").hidden = m === "pt"; $("#pt").hidden = m === "en";
-  $("#reader").style.gridTemplateColumns = m === "lado" ? "" : "1fr";
+  $$("#tabs button").forEach((y) => y.classList.toggle("on", y === b));
+  $$(".tab").forEach((t) => (t.hidden = t.id !== b.dataset.t));
 };
 </script></body></html>
