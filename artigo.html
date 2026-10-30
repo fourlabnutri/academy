@@ -34,6 +34,7 @@ function prep(t) {
 }
 const md = (t) => marked.parse(prep(t));
 const slugify = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+const foto = (s) => `assets/fotos/a${[...(s || "")].reduce((h, c) => h + c.charCodeAt(0), 0) % 10 + 1}.jpg`;
 const p = await guard(); if (!p) throw 0;
 shell(p, "artigos");
 const { data: a } = await supabase.from("academy_artigos").select("*").eq("id", qs("id")).maybeSingle();
@@ -41,7 +42,7 @@ if (!a) { $("#t").textContent = "Artigo não encontrado"; throw 0; }
 const x = a.extras || {}, np = x.na_pratica || {};
 document.title = (a.titulo_pt || a.titulo_original) + " · FourLab Academy";
 if (a.tema) $("#crumb").innerHTML += ` / <a href="artigos?tema=${slugify(a.tema)}">${esc(a.tema)}</a>`;
-$("#cover").innerHTML = `<img src="assets/capas/${esc(a.slug)}.png" alt="" onerror="this.parentNode.classList.add('cover-empty');this.remove()">`;
+$("#cover").innerHTML = `<img src="${foto(a.slug)}" alt=""><span class="cover-tema">${esc(a.tema || "")}</span>`;
 $("#chips").innerHTML = [a.tipo_estudo, a.nivel_evidencia && "Evidência " + a.nivel_evidencia.toLowerCase(), a.ano].filter(Boolean).map((c, i) => `<span class="chip${i ? " chip-ghost" : ""}">${esc(c)}</span>`).join("");
 $("#t").textContent = a.titulo_pt || a.titulo_original;
 $("#src").textContent = [a.autores, a.periodico].filter(Boolean).join(" · ");
