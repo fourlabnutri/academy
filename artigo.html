@@ -19,7 +19,20 @@
 <script type="module">
 import { supabase, $, $$, esc, guard, shell, qs } from "./assets/app.js";
 import { marked } from "https://esm.sh/marked@12.0.2";
-const md = (t) => marked.parse(esc(t || ""));
+marked.use({ renderer: { html: (t) => esc(typeof t === "string" ? t : t.text) } });
+// agrupa sequências de linhas curtas (tabelas/legendas extraídas do PDF) num quadro, sem mudar o texto
+function prep(t) {
+  const out = [], buf = [];
+  const flush = () => { if (buf.length >= 3) out.push('<div class="dbox">' + buf.map((l) => "<div>" + esc(l) + "</div>").join("") + "</div>"); else out.push(...buf); buf.length = 0; };
+  for (const para of (t || "").replace(/(\w)- (\w)/g, "$1$2").split(/\n{2,}/)) {
+    const l = para.trim();
+    const curto = l.length && l.length < 90 && !/^#/.test(l) && !/[.:]$/.test(l) && !/^[-*\d]+[.)]? /.test(l);
+    if (curto) buf.push(l); else { flush(); out.push(para); }
+  }
+  flush();
+  return out.join("\n\n");
+}
+const md = (t) => marked.parse(prep(t));
 const slugify = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 const p = await guard(); if (!p) throw 0;
 shell(p, "artigos");
@@ -57,11 +70,12 @@ $("#resumo").innerHTML = `
   ${(x.tags || []).length ? `<div class="tags">${x.tags.map((t) => `<span>#${esc(t)}</span>`).join("")}</div>` : ""}`;
 
 /* aba Na prática */
-const lab = { dose: "Dose", timing: "Quando tomar", populacao: "Para quem", quando_indicar: "Quando indicar", cuidados: "Cuidados" };
-const ks = Object.keys(lab).filter((k) => np[k]);
-$("#pratica").innerHTML = ks.length
-  ? `<div class="pgrid">${ks.map((k) => `<div class="pcard${k === "cuidados" ? " warn" : ""}"><h3>${lab[k]}</h3><p>${esc(np[k])}</p></div>`).join("")}</div>`
-  : '<div class="card empty">Sem orientações práticas para este estudo.</div>';
+const blk = (k, cls, label) => np[k] ? `<div class="${cls}"><h3>${label}</h3><p>${esc(np[k])}</p></div>` : "";
+$("#pratica").innerHTML = Object.values(np).some(Boolean) ? `
+  ${blk("dose", "pr-hero", "Dose estudada")}
+  <div class="pr-row">${blk("timing", "pr-item", "Quando tomar")}${blk("populacao", "pr-item", "Para quem")}</div>
+  ${blk("quando_indicar", "pr-ind", "Quando indicar")}
+  ${blk("cuidados", "pr-warn", "Atenção")}` : '<div class="card empty">Sem orientações práticas para este estudo.</div>';
 
 /* aba Texto */
 let lang = "pt";
