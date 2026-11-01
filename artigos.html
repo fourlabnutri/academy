@@ -19,7 +19,7 @@ const temas = [...new Set(arts.map((a) => a.tema).filter(Boolean))].sort();
 const temaAtual = temas.find((t) => slugify(t) === qs("tema"));
 let filtro = "todos";
 
-const foto = (s) => `assets/fotos/a${[...(s || "")].reduce((h, c) => h + c.charCodeAt(0), 0) % 10 + 1}.jpg`;
+const foto = (s) => `assets/fotos/${s}.jpg`;
 const capa = (a) => `<div class="cover"><img src="${foto(a.slug)}" alt="" loading="lazy"><span class="cover-tema">${esc(a.tema || "")}</span></div>`;
 const card = (a) => `<a class="acard" href="artigo?id=${a.id}">${capa(a)}
   <div class="acard-body"><span class="chip">${esc(a.tipo_estudo || "Estudo")}</span>

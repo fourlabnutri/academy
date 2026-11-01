@@ -34,7 +34,7 @@ function prep(t) {
 }
 const md = (t) => marked.parse(prep(t));
 const slugify = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-const foto = (s) => `assets/fotos/a${[...(s || "")].reduce((h, c) => h + c.charCodeAt(0), 0) % 10 + 1}.jpg`;
+const foto = (s) => `assets/fotos/${s}.jpg`;
 const p = await guard(); if (!p) throw 0;
 shell(p, "artigos");
 const { data: a } = await supabase.from("academy_artigos").select("*").eq("id", qs("id")).maybeSingle();
