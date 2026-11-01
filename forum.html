@@ -1,0 +1,37 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Fórum · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><section class="view">
+  <header class="lib-head"><h1>Fórum</h1><p class="sub">Debata as aulas, troque casos clínicos e fale direto com a equipe FourLab.</p></header>
+  <div class="lib-tools"><div class="seg" id="cats"></div><button class="btn btn-primary btn-sm" id="novo" style="margin-left:auto">Novo tópico</button></div>
+  <form class="card ftform" id="form" hidden>
+    <div class="field"><label>Onde publicar</label><select id="cat"><option value="duvida">Dúvida para a comunidade</option><option value="caso">Caso clínico (sem identificar o paciente)</option><option value="fourlab">Mensagem para a FourLab</option></select></div>
+    <div class="field"><label>Título</label><input id="tit" maxlength="160" required></div>
+    <div class="field"><label>Mensagem</label><textarea id="txt" rows="5" maxlength="8000" required></textarea></div>
+    <button class="btn btn-primary btn-sm" style="align-self:flex-start">Publicar</button><div class="msg" id="msg"></div>
+  </form>
+  <div class="ftlist" id="lista"></div>
+</section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell, fmtDate, showMsg } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+shell(p, "forum");
+const N = { todos: "Todos", debate: "Debates das aulas", caso: "Casos clínicos", duvida: "Dúvidas", fourlab: "Fale com a FourLab" };
+let cat = "todos", rows = [];
+$("#cats").innerHTML = Object.entries(N).map(([k, v]) => `<button data-c="${k}" class="${k === cat ? "on" : ""}">${v}</button>`).join("");
+$("#cats").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; cat = b.dataset.c; [...$("#cats").children].forEach((x) => x.classList.toggle("on", x === b)); render(); };
+$("#novo").onclick = () => { $("#form").hidden = !$("#form").hidden; };
+function render() {
+  const l = rows.filter((t) => cat === "todos" || t.categoria === cat);
+  $("#lista").innerHTML = l.map((t) => `<a class="ftrow" href="topico?id=${t.id}"><div class="ftmain"><span class="chip">${N[t.categoria]}</span><h3>${t.fixado ? "📌 " : ""}${esc(t.titulo)}</h3><p>${esc(t.autor_nome)} · ${fmtDate(t.ultima_em)}</p></div><div class="ftn"><b>${t.respostas}</b><span>${t.respostas === 1 ? "resposta" : "respostas"}</span></div></a>`).join("") || '<div class="card empty">Nenhum tópico aqui ainda. Comece a conversa.</div>';
+}
+async function load() {
+  const { data } = await supabase.from("academy_forum_topicos").select("*").order("fixado", { ascending: false }).order("ultima_em", { ascending: false }).limit(200);
+  rows = data || []; render();
+}
+$("#form").onsubmit = async (e) => {
+  e.preventDefault();
+  const { error } = await supabase.from("academy_forum_topicos").insert({ categoria: $("#cat").value, titulo: $("#tit").value.trim(), corpo: $("#txt").value.trim(), user_id: p.id });
+  if (error) return showMsg($("#msg"), "Não foi possível publicar.");
+  e.target.reset(); e.target.hidden = true; load();
+};
+load();
+</script></body></html>

@@ -28,6 +28,7 @@ const I = {
   check: '<rect x="3" y="3" width="18" height="18" rx="5"/><path d="m8 12 3 3 5-6"/>',
   edit: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
   out: '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3"/>',
+  chat: '<path d="M4 5h16v11H9l-5 4z"/>',
   rank: '<path d="M5 21v-7h4v7M10 21V9h4v12M15 21v-5h4v5"/>',
   arrow: '<path d="M7 17 17 7M8 7h9v9"/>',
 };
@@ -60,6 +61,7 @@ export function shell(p, active) {
     ["Aprender"],
     ["inicio", "Início", "home"],
     ["artigos", "Artigos", "doc"],
+    ["forum", "Fórum", "chat"],
     ["ranking", "Ranking", "rank"],
     ["certificados", "Certificados", "award"],
   ];

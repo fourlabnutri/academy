@@ -1,0 +1,31 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Tópico · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><section class="view read">
+  <span class="crumb"><a href="forum">Fórum</a></span>
+  <div id="top"></div><div class="ftposts" id="resp"></div>
+  <form class="card ftform" id="form"><div class="field"><label>Sua resposta</label><textarea id="txt" rows="4" maxlength="8000" required></textarea></div><button class="btn btn-primary btn-sm" style="align-self:flex-start">Responder</button><div class="msg" id="msg"></div></form>
+</section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell, qs, fmtDate, showMsg } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+shell(p, "forum");
+const id = qs("id"), staff = p.role !== "prescritor";
+const post = (x, r) => `<article class="ftpost ${x.oficial ? "of" : ""} ${x.destaque ? "dest" : ""}"><header><strong>${esc(x.autor_nome)}</strong><span>${fmtDate(x.created_at)}</span>${x.destaque ? '<span class="selo">Resposta em destaque</span>' : ""}${r && staff ? `<button class="btn btn-ghost btn-sm" data-d="${x.id}" data-v="${!x.destaque}">${x.destaque ? "Tirar destaque" : "Destacar"}</button>` : ""}</header><p>${esc(x.corpo).replace(/\n/g, "<br>")}</p></article>`;
+async function load() {
+  const [{ data: t }, { data: rs }] = await Promise.all([
+    supabase.from("academy_forum_topicos").select("*").eq("id", id).maybeSingle(),
+    supabase.from("academy_forum_respostas").select("*").eq("topico_id", id).order("created_at"),
+  ]);
+  if (!t) { $("#top").innerHTML = '<div class="card empty">Tópico não encontrado.</div>'; $("#form").hidden = true; return; }
+  document.title = t.titulo + " · FourLab Academy";
+  $("#top").innerHTML = `<h1 class="fttit">${esc(t.titulo)}</h1>${t.aula_id ? `<a class="btn btn-ghost btn-sm" href="aula?id=${t.aula_id}" style="text-decoration:none;display:inline-flex;margin-bottom:14px">Assistir à aula</a>` : ""}${post(t)}`;
+  $("#resp").innerHTML = (rs || []).map((x) => post(x, true)).join("");
+}
+$("#resp").onclick = async (e) => { const b = e.target.closest("[data-d]"); if (!b) return; await supabase.from("academy_forum_respostas").update({ destaque: b.dataset.v === "true" }).eq("id", b.dataset.d); load(); };
+$("#form").onsubmit = async (e) => {
+  e.preventDefault();
+  const { error } = await supabase.from("academy_forum_respostas").insert({ topico_id: id, corpo: $("#txt").value.trim(), user_id: p.id });
+  if (error) return showMsg($("#msg"), "Não foi possível responder.");
+  e.target.reset(); load();
+};
+load();
+</script></body></html>

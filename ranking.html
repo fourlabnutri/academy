@@ -1,6 +1,8 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Ranking · FourLab Academy</title></head>
 <body><div class="shell" id="sh"><div></div><main><section class="view">
-  <header class="lib-head"><h1>Ranking</h1><p class="sub">Aula concluída vale 50 pontos, artigo lido 10 e cada acerto no quiz 10.</p></header>
+  <header class="lib-head"><h1>Ranking</h1><p class="sub">Quanto mais você estuda e participa, mais sobe. Os pontos nunca expiram nesta temporada.</p></header>
+  <div class="myrank" id="me"></div>
+  <div class="rank-rules"><div class="rule"><b>+50</b><span>Aula concluída</span></div><div class="rule"><b>+10</b><span>Artigo lido</span></div><div class="rule"><b>+10</b><span>Acerto no desafio</span></div><div class="rule"><b>+10</b><span>Resposta no fórum (até 3 por dia)</span></div><div class="rule"><b>+30</b><span>Resposta destacada pela equipe</span></div></div>
   <a class="btn btn-primary btn-sm" href="quiz" id="toQuiz" style="align-self:flex-start;text-decoration:none">Fazer o desafio</a>
   <div class="podio" id="podio"></div><ol class="rank" id="lista"></ol>
 </section></main></div>
@@ -13,6 +15,8 @@ const selo = (n) => n ? `<span class="selo">Fundador nº ${n}</span>` : "";
 async function load() {
   const { data } = await supabase.rpc("academy_ranking");
   const r = data || [];
+  const pos = r.findIndex((x) => x.user_id === p.id);
+  $("#me").innerHTML = pos >= 0 ? `<b>${pos + 1}º lugar</b><span>${r[pos].pontos} pontos${pos ? ` · faltam ${r[pos - 1].pontos - r[pos].pontos + 1} para subir` : " · você lidera"}</span>` : "";
   $("#podio").innerHTML = r.slice(0, 3).map((x, i) => `<div class="pod p${i + 1}"><b>${i + 1}º</b><h3>${esc(x.nome)}</h3><span class="pts">${x.pontos} pts</span>${selo(x.fundador_num)}</div>`).join("");
   $("#lista").innerHTML = r.slice(3, tv ? 13 : 100).map((x, i) => `<li class="${x.user_id === p.id ? "me" : ""}"><span>${i + 4}º</span><strong>${esc(x.nome)}</strong>${selo(x.fundador_num)}<em>${x.pontos} pts</em></li>`).join("");
 }

@@ -6,7 +6,7 @@
     <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
       <div class="video" id="video"></div>
       <div class="card" style="padding:6px 22px 22px">
-        <div class="tabs" id="tabs"><button class="on" data-t="sobre">Sobre</button><button data-t="mat">Materiais</button><button data-t="duv">Dúvidas</button></div>
+        <div class="tabs" id="tabs"><button class="on" data-t="sobre">Sobre</button><button data-t="mat">Materiais</button><button data-t="duv">Dúvidas</button></div><a class="btn btn-ghost btn-sm" id="debate" hidden style="text-decoration:none;align-self:flex-start;margin:10px 0">Debater esta aula no fórum</a>
         <div id="tab" style="padding-top:14px"></div>
       </div>
     </div>
@@ -22,6 +22,7 @@ if (!a) { $("#t").textContent = "Aula não encontrada"; throw 0; }
 document.title = a.titulo + " · FourLab Academy";
 $("#t").textContent = a.titulo; $("#prof").textContent = a.professor || "";
 $("#trl").textContent = "Trilha · " + a.academy_trilhas.titulo; $("#trl").href = "trilha?id=" + a.trilha_id;
+supabase.from("academy_forum_topicos").select("id").eq("aula_id", a.id).maybeSingle().then(({ data }) => { if (data) { $("#debate").href = `topico?id=${data.id}`; $("#debate").hidden = false; } });
 $("#video").innerHTML = a.panda_video_id ? `<iframe src="${pandaUrl(a.panda_video_id)}" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>` : '<span class="muted">Vídeo em processamento</span>';
 const [{ data: irmas }, { data: prog }] = await Promise.all([
   supabase.from("academy_aulas").select("id,titulo,duracao_seg").eq("trilha_id", a.trilha_id).eq("etapa", "publicado").order("ordem"),
