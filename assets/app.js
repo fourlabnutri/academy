@@ -17,7 +17,9 @@ export function showMsg(node, text, kind = "err") {
   node.textContent = text;
   node.className = `msg show ${kind}`;
 }
-export const pandaUrl = (id) => cfg.PANDA_EMBED.replace("{id}", encodeURIComponent(id));
+// aceita o código ou o link completo do YouTube
+const ytId = (v) => (String(v).match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/)([\w-]{11})/) || [])[1] || v;
+export const pandaUrl = (id) => cfg.PANDA_EMBED.replace("{id}", encodeURIComponent(ytId(id)));
 
 /* ---------- ícones (mesmo traço do hub) ---------- */
 const I = {
