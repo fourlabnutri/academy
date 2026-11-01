@@ -1,16 +1,13 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Aula · FourLab Academy</title></head>
-<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
-<section class="view">
-  <div class="page-head"><div><a class="ex" id="trl" style="text-decoration:none"></a><h1 id="t" style="margin-top:6px"></h1><div class="sub" id="prof"></div></div><button class="btn btn-ghost btn-sm" id="concl">Marcar como concluída</button></div>
+<body><div class="shell"><div></div><main><section class="view">
+  <span class="crumb"><a href="inicio">Início</a> / <a id="trl"></a></span>
   <div class="player">
-    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+    <div class="pl-main">
       <div class="video" id="video"></div>
-      <div class="card" style="padding:6px 22px 22px">
-        <div class="tabs" id="tabs"><button class="on" data-t="sobre">Sobre</button><button data-t="mat">Materiais</button><button data-t="duv">Dúvidas</button></div><a class="btn btn-ghost btn-sm" id="debate" hidden style="text-decoration:none;align-self:flex-start;margin:10px 0">Debater esta aula no fórum</a>
-        <div id="tab" style="padding-top:14px"></div>
-      </div>
+      <div class="pl-head"><div><h1 id="t"></h1><p id="prof"></p></div><div class="pl-acts"><button class="btn btn-primary" id="concl">Marcar como concluída</button><a class="btn btn-ghost" id="debate" hidden>Debater no fórum</a></div></div>
+      <div class="card pl-tabs"><div class="tabs" id="tabs"><button class="on" data-t="sobre">Sobre</button><button data-t="mat">Materiais</button><button data-t="duv">Dúvidas</button></div><div id="tab" style="padding-top:14px"></div></div>
     </div>
-    <div class="card" style="padding:18px"><div class="card-head" style="margin-bottom:10px"><div><h2>Conteúdo da trilha</h2><p class="desc" id="cnt"></p></div></div><div id="lessons"></div></div>
+    <aside class="card pl-side"><h2>Conteúdo da trilha</h2><p class="desc" id="cnt"></p><div id="lessons"></div></aside>
   </div>
 </section></main></div>
 <script type="module">
@@ -21,7 +18,7 @@ const { data: a } = await supabase.from("academy_aulas").select("*, academy_tril
 if (!a) { $("#t").textContent = "Aula não encontrada"; throw 0; }
 document.title = a.titulo + " · FourLab Academy";
 $("#t").textContent = a.titulo; $("#prof").textContent = a.professor || "";
-$("#trl").textContent = "Trilha · " + a.academy_trilhas.titulo; $("#trl").href = "trilha?id=" + a.trilha_id;
+$("#trl").textContent = a.academy_trilhas.titulo; $("#trl").href = "trilha?id=" + a.trilha_id;
 supabase.from("academy_forum_topicos").select("id").eq("aula_id", a.id).maybeSingle().then(({ data }) => { if (data) { $("#debate").href = `topico?id=${data.id}`; $("#debate").hidden = false; } });
 $("#video").innerHTML = a.panda_video_id ? `<iframe src="${pandaUrl(a.panda_video_id)}" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>` : '<span class="muted">Vídeo em processamento</span>';
 const [{ data: irmas }, { data: prog }] = await Promise.all([

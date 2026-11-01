@@ -1,20 +1,25 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Trilha · FourLab Academy</title></head>
-<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
-<section class="view"><div class="page-head"><div><span class="ex">Trilha</span><h1 id="t" style="margin-top:6px"></h1><div class="sub" id="d"></div></div></div>
-<div class="card" id="lista"></div></section></main></div>
+<body><div class="shell"><div></div><main><section class="view read">
+  <span class="crumb"><a href="inicio">Início</a> / Trilha</span>
+  <header class="tr-hero" id="hero"><div class="hero-in"><h1 id="t"></h1><p id="d"></p><div class="bar"><i id="bar"></i></div><small id="pr"></small></div></header>
+  <div class="alist" id="lista"></div>
+</section></main></div>
 <script type="module">
-import { supabase, $, esc, guard, shell, qs, fmtDur } from "./assets/app.js";
+import { supabase, $, esc, guard, shell, qs, fmtDur, capaAula } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
 shell(p, "inicio");
 const id = qs("id");
 const [{ data: t }, { data: aulas }, { data: prog }] = await Promise.all([
   supabase.from("academy_trilhas").select("*").eq("id", id).maybeSingle(),
-  supabase.from("academy_aulas").select("id,titulo,professor,duracao_seg").eq("trilha_id", id).eq("etapa", "publicado").order("ordem"),
+  supabase.from("academy_aulas").select("id,titulo,professor,duracao_seg,resumo,panda_video_id").eq("trilha_id", id).eq("etapa", "publicado").order("ordem"),
   supabase.from("academy_progresso").select("aula_id,concluida").eq("user_id", p.id),
 ]);
 if (!t) { $("#t").textContent = "Trilha não encontrada"; throw 0; }
 document.title = t.titulo + " · FourLab Academy";
+$("#hero").style.setProperty("--img", `url('assets/trilhas/${t.slug}.jpg')`);
 $("#t").textContent = t.titulo; $("#d").textContent = t.descricao || "";
 const done = new Set((prog || []).filter((x) => x.concluida).map((x) => x.aula_id));
-$("#lista").innerHTML = (aulas || []).map((a, i) => `<a class="les" href="aula?id=${a.id}" style="text-decoration:none"><span class="chk ${done.has(a.id) ? "done" : ""}"></span><span class="t">${i + 1}. ${esc(a.titulo)}<br><span class="muted" style="font-size:12px;font-weight:500">${esc(a.professor || "")}</span></span><span class="d">${fmtDur(a.duracao_seg)}</span></a>`).join("") || '<div class="empty">Nenhuma aula publicada ainda.</div>';
+const l = aulas || [], d = l.filter((a) => done.has(a.id)).length, pct = l.length ? Math.round(d / l.length * 100) : 0;
+$("#bar").style.width = pct + "%"; $("#pr").textContent = `${d} de ${l.length} aulas concluídas`;
+$("#lista").innerHTML = l.map((a, i) => `<a class="acard-h" href="aula?id=${a.id}"><div class="ah-img" style="--img:url('${capaAula(a.panda_video_id)}')">${done.has(a.id) ? '<span class="ah-ok">✓</span>' : '<span class="ah-play">▶</span>'}</div><div class="ah-body"><small>Aula ${i + 1}${a.duracao_seg ? " · " + fmtDur(a.duracao_seg) : ""}</small><h3>${esc(a.titulo)}</h3><p>${esc(a.professor || "")}</p></div></a>`).join("") || '<div class="card empty">Nenhuma aula publicada ainda.</div>';
 </script></body></html>

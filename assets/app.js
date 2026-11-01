@@ -19,6 +19,7 @@ export function showMsg(node, text, kind = "err") {
 }
 // aceita o código ou o link completo do YouTube
 const ytId = (v) => (String(v).match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/)([\w-]{11})/) || [])[1] || v;
+export const capaAula = (id) => `${location.pathname.includes("/admin/") ? "../" : "./"}assets/aulas/${ytId(id || "")}.jpg`;
 export const pandaUrl = (id) => cfg.PANDA_EMBED.replace("{id}", encodeURIComponent(ytId(id)));
 
 /* ---------- ícones (mesmo traço do hub) ---------- */

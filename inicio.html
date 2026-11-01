@@ -1,34 +1,38 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Início · FourLab Academy</title></head>
-<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
-<section class="view">
-  <div class="page-head"><div><h1 id="ola">Olá</h1><div class="sub">Trilhas, aulas e artigos para a sua prescrição.</div></div></div>
-  <div class="bento" id="destaque"></div>
-  <div class="page-head" style="margin-top:8px"><div><h1 style="font-size:22px">Trilhas</h1></div></div>
-  <div class="grid-3" id="trilhas"><p class="muted">Carregando…</p></div>
+<body><div class="shell"><div></div><main><section class="view home">
+  <header class="home-top"><div><p class="kicker">FourLab Academy</p><h1 id="ola">Olá</h1></div><span class="avatar" id="meAv"></span></header>
+  <div id="hero"></div>
+  <div class="stats3" id="stats"></div>
+  <section class="sec"><div class="sec-head"><h2>Trilhas</h2></div><div class="tgrid" id="trilhas"></div></section>
+  <section class="sec"><div class="sec-head"><h2>Biblioteca científica</h2><a href="artigos">Ver tudo</a></div><div class="chipgrid" id="temas"></div></section>
+  <a class="cta-forum" href="forum"><div><h3>Discuta com outros prescritores</h3><p>Debates das aulas, casos clínicos e contato direto com a equipe.</p></div><span>Abrir fórum →</span></a>
 </section></main></div>
 <script type="module">
-import { supabase, $, esc, guard, shell, fmtDate } from "./assets/app.js";
+import { supabase, $, esc, guard, shell, fmtDur, capaAula } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
 shell(p, "inicio");
 $("#ola").textContent = "Olá, " + p.nome.split(" ")[0];
-const [{ data: trilhas }, { data: aulas }, { data: prog }, { data: arts }] = await Promise.all([
+const slugify = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+const [{ data: trilhas }, { data: aulas }, { data: prog }, { data: arts }, { data: rank }] = await Promise.all([
   supabase.from("academy_trilhas").select("*").eq("etapa", "publicado").order("ordem"),
-  supabase.from("academy_aulas").select("id,trilha_id,titulo,professor,duracao_seg,ordem").eq("etapa", "publicado").order("ordem"),
+  supabase.from("academy_aulas").select("id,trilha_id,titulo,professor,duracao_seg,ordem,panda_video_id").eq("etapa", "publicado").order("ordem"),
   supabase.from("academy_progresso").select("aula_id,concluida").eq("user_id", p.id),
-  supabase.from("academy_artigos").select("id,titulo_pt,titulo_original,periodico,ano,nivel_evidencia").eq("etapa", "publicado").order("publicado_em", { ascending: false }).limit(4),
+  supabase.from("academy_artigos").select("tema").eq("etapa", "publicado"),
+  supabase.rpc("academy_ranking"),
 ]);
 const done = new Set((prog || []).filter((x) => x.concluida).map((x) => x.aula_id));
-const cores = [["#731b58", "#5c1547"], ["#e3055f", "#b8044d"], ["#e96709", "#c25507"], ["#3a2a33", "#2e2229"]];
-$("#trilhas").innerHTML = (trilhas || []).map((t, i) => {
-  const as = (aulas || []).filter((a) => a.trilha_id === t.id), n = as.length, d = as.filter((a) => done.has(a.id)).length, pct = n ? Math.round(d / n * 100) : 0;
-  const [a, b] = cores[i % cores.length];
-  return `<a class="card course" href="trilha?id=${t.id}" style="text-decoration:none"><div class="thumb"><div class="lines" style="background:repeating-linear-gradient(-62deg,${a} 0 22px,${b} 22px 50px)"></div><span class="pill">${pct === 100 ? "Concluída" : pct ? "Em andamento" : "Nova"}</span></div>
-    <div class="body"><h3>${esc(t.titulo)}</h3><p class="muted" style="font-size:13px">${esc(t.descricao || "")}</p>${pct ? `<div class="bar" style="margin-top:6px"><i style="width:${pct}%"></i></div>` : ""}
-    <div class="meta"><span>${n} aula${n === 1 ? "" : "s"}</span>${t.carga_horas ? `<span>${t.carga_horas}h</span>` : ""}${pct ? `<span>${pct}%</span>` : ""}</div></div></a>`;
-}).join("") || '<div class="card empty">As primeiras trilhas estão sendo preparadas.</div>';
+const pos = (rank || []).findIndex((x) => x.user_id === p.id);
+$("#stats").innerHTML = [
+  [`${done.size}/${(aulas || []).length}`, "aulas concluídas", "trilhas"],
+  [pos >= 0 ? rank[pos].pontos : "—", "pontos", "ranking"],
+  [pos >= 0 ? `${pos + 1}º` : "—", "no ranking", "ranking"],
+].map(([v, l, h]) => `<a class="st" href="${h === "trilhas" ? "#trilhas" : h}"><b>${v}</b><span>${l}</span></a>`).join("");
 const prox = (aulas || []).find((a) => !done.has(a.id));
-$("#destaque").innerHTML = (prox ? `<div class="card hero s8"><div><span class="eyebrow">Continue aprendendo</span><h2>${esc(prox.titulo)}</h2><p>${esc(prox.professor || "")}</p></div>
-  <div><a class="btn btn-light" href="aula?id=${prox.id}" style="text-decoration:none">Assistir</a></div></div>` : "") +
-  `<div class="card ${prox ? "s4" : "s12"}"><div class="card-head"><div><h2>Artigos recentes</h2><p class="desc">Resumo, tradução e original</p></div><a class="icon-btn" href="artigos" aria-label="Ver artigos">→</a></div><div class="list">${
-  (arts || []).map((a) => `<a class="li" href="artigo?id=${a.id}" style="text-decoration:none">${a.nivel_evidencia ? `<span class="pill">${esc(a.nivel_evidencia)}</span>` : ""}<div class="t"><b>${esc(a.titulo_pt || a.titulo_original)}</b><span>${esc([a.periodico, a.ano].filter(Boolean).join(" · "))}</span></div></a>`).join("") || '<p class="muted">Em breve.</p>'}</div></div>`;
+$("#hero").innerHTML = prox ? `<a class="hero-aula" href="aula?id=${prox.id}" style="--img:url('${capaAula(prox.panda_video_id)}')"><div class="hero-in"><span class="kicker">${done.size ? "Continue de onde parou" : "Comece por aqui"}</span><h2>${esc(prox.titulo)}</h2><p>${esc(prox.professor || "")}${prox.duracao_seg ? " · " + fmtDur(prox.duracao_seg) : ""}</p><span class="btn btn-primary">▶ Assistir aula</span></div></a>` : "";
+$("#trilhas").innerHTML = (trilhas || []).map((t) => {
+  const as = (aulas || []).filter((a) => a.trilha_id === t.id), n = as.length, d = as.filter((a) => done.has(a.id)).length, pct = n ? Math.round(d / n * 100) : 0;
+  return `<a class="tcard" href="trilha?id=${t.id}"><div class="tcover" style="--img:url('assets/trilhas/${esc(t.slug)}.jpg')"><span class="tcount">${n} aula${n === 1 ? "" : "s"}</span></div><div class="tbody"><h3>${esc(t.titulo)}</h3><p>${esc(t.descricao || "")}</p><div class="bar"><i style="width:${pct}%"></i></div><small>${pct ? pct + "% concluído" : "Não iniciada"}</small></div></a>`;
+}).join("") || '<div class="card empty">As primeiras trilhas estão sendo preparadas.</div>';
+const temas = {}; (arts || []).forEach((a) => { if (a.tema) temas[a.tema] = (temas[a.tema] || 0) + 1; });
+$("#temas").innerHTML = Object.entries(temas).sort().map(([t, n]) => `<a class="tchip" href="artigos?tema=${slugify(t)}" style="--img:url('assets/temas/${slugify(t)}.jpg')"><b>${esc(t)}</b><span>${n} estudo${n === 1 ? "" : "s"}</span></a>`).join("") || '<p class="muted">Em breve.</p>';
 </script></body></html>
