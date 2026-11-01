@@ -1,0 +1,33 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Desafio · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><section class="view read">
+  <header class="lib-head"><h1>Desafio Academy</h1><p class="sub">5 perguntas sobre fadiga e tamponamento. Só a primeira tentativa vale para o ranking.</p></header>
+  <div id="q"></div>
+</section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+shell(p, "ranking");
+// RASCUNHO: revisar com o Prof. Lázaro antes do evento. Gabarito só no SQL 005.
+const Q = [
+  ["O lactato é a causa da fadiga muscular?", ["Sim, é a principal causa", "Não, é um marcador do estresse metabólico", "Só em atletas amadores"]],
+  ["A beta-alanina é precursora de qual tampão intramuscular?", ["Carnosina", "Creatina", "Bicarbonato"]],
+  ["Qual dose de bicarbonato de sódio aparece no caso prático da aula?", ["0,1 g/kg", "1 g/kg", "0,3 g/kg"]],
+  ["Por que fracionar a dose de bicarbonato?", ["Para aumentar o sabor", "Para reduzir efeitos gastrointestinais", "Para eliminar a necessidade de treino"]],
+  ["Qual exame fornece bicarbonato e pH para acompanhar treinos?", ["Gasometria capilar", "Hemograma", "Ferritina"]],
+];
+const { data: feito } = await supabase.from("academy_quiz").select("acertos,total").eq("user_id", p.id).eq("quiz", "evento-2026").maybeSingle();
+const fim = (r) => { $("#q").innerHTML = `<div class="pr-hero"><h3>Resultado</h3><p>${r.acertos} de ${r.total} acertos: +${r.acertos * 10} pontos</p></div><a class="btn btn-primary" href="ranking" style="text-decoration:none;align-self:flex-start;margin-top:16px;display:inline-flex">Ver ranking</a>`; };
+if (feito) fim(feito); else {
+  let i = 0; const resp = [];
+  const show = () => { $("#q").innerHTML = `<div class="quiz"><span class="chip">Pergunta ${i + 1} de ${Q.length}</span><h2>${esc(Q[i][0])}</h2>${Q[i][1].map((o, k) => `<button class="qopt" data-k="${k}">${esc(o)}</button>`).join("")}</div>`; };
+  $("#q").onclick = async (e) => {
+    const b = e.target.closest("[data-k]"); if (!b) return;
+    resp.push(+b.dataset.k); i++;
+    if (i < Q.length) return show();
+    const { data, error } = await supabase.rpc("academy_quiz_enviar", { respostas: resp });
+    if (error || !data?.[0]) { $("#q").innerHTML = '<div class="card empty">Não foi possível enviar. Tente de novo.</div>'; return; }
+    fim(data[0]);
+  };
+  show();
+}
+</script></body></html>

@@ -1,0 +1,21 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Ranking · FourLab Academy</title></head>
+<body><div class="shell" id="sh"><div></div><main><section class="view">
+  <header class="lib-head"><h1>Ranking</h1><p class="sub">Aula concluída vale 50 pontos, artigo lido 10 e cada acerto no quiz 10.</p></header>
+  <a class="btn btn-primary btn-sm" href="quiz" id="toQuiz" style="align-self:flex-start;text-decoration:none">Fazer o desafio</a>
+  <div class="podio" id="podio"></div><ol class="rank" id="lista"></ol>
+</section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell, qs } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+const tv = qs("tv") === "1";
+if (tv) { document.body.classList.add("tv"); $("#toQuiz").hidden = true; } else shell(p, "ranking");
+const selo = (n) => n ? `<span class="selo">Fundador nº ${n}</span>` : "";
+async function load() {
+  const { data } = await supabase.rpc("academy_ranking");
+  const r = data || [];
+  $("#podio").innerHTML = r.slice(0, 3).map((x, i) => `<div class="pod p${i + 1}"><b>${i + 1}º</b><h3>${esc(x.nome)}</h3><span class="pts">${x.pontos} pts</span>${selo(x.fundador_num)}</div>`).join("");
+  $("#lista").innerHTML = r.slice(3, tv ? 13 : 100).map((x, i) => `<li class="${x.user_id === p.id ? "me" : ""}"><span>${i + 4}º</span><strong>${esc(x.nome)}</strong>${selo(x.fundador_num)}<em>${x.pontos} pts</em></li>`).join("");
+}
+await load();
+if (tv) setInterval(load, 20000);
+</script></body></html>

@@ -36,7 +36,7 @@ $("#f").addEventListener("submit", async (e) => {
   const { data, error } = await supabase.auth.signUp({
     email: $("#email").value.trim(), password: $("#senha").value,
     options: { emailRedirectTo: location.origin + location.pathname.replace(/index\.html$|$/, "pendente"),
-      data: { app: "academy", nome: $("#nome").value.trim(), profissao: $("#profissao").value, conselho, registro: num.join(" "), cidade, uf: uf || null, modalidade: $("#modalidade").value } },
+      data: { app: "academy", origem: new URLSearchParams(location.search).get("evento") === "ea" ? "endurance-applied" : null, nome: $("#nome").value.trim(), profissao: $("#profissao").value, conselho, registro: num.join(" "), cidade, uf: uf || null, modalidade: $("#modalidade").value } },
   });
   b.disabled = false;
   if (error) return showMsg($("#msg"), error.message.includes("registered") ? "Esse e-mail já tem cadastro. Use Entrar." : "Não foi possível cadastrar: " + error.message);

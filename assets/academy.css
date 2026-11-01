@@ -323,3 +323,19 @@ html{background:var(--paper)}
 .pr-warn::before{content:"!";grid-row:span 2;width:26px;height:26px;border-radius:50%;background:var(--pink);color:#fff;font-weight:900;display:grid;place-items:center}
 .pr-warn h3{color:var(--red);margin:0}.pr-warn p{font-size:14.5px;line-height:1.6;color:var(--ink-2)}
 @media (max-width:640px){.pr-row{grid-template-columns:1fr}.pr-hero p{font-size:18px}}
+
+/* ---------- RANKING / QUIZ ---------- */
+.podio{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.pod{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.pod.p1{background:linear-gradient(135deg,rgba(233,103,9,.28),rgba(227,5,95,.18));border-color:rgba(233,103,9,.5)}
+.pod b{font-family:var(--font-title);font-size:34px;font-weight:800;color:var(--orange);line-height:1}
+.pod h3{font-size:20px}.pts{font-weight:800;color:var(--ink-2)}
+.selo{font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--orange-soft);color:var(--orange);white-space:nowrap}
+.rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rank li{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 18px}
+.rank li.me{border-color:var(--orange)}.rank li>span{color:var(--muted);font-weight:800;width:32px}.rank em{margin-left:auto;font-style:normal;font-weight:800}
+.quiz{display:flex;flex-direction:column;gap:12px}.quiz h2{font-size:24px;margin:6px 0 10px;line-height:1.25}
+.qopt{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:var(--radius-sm);padding:16px 18px;font-size:16px;font-weight:600;text-align:left;cursor:pointer}
+.qopt:hover{border-color:var(--orange)}
+body.tv .shell{grid-template-columns:1fr}body.tv .pod h3{font-size:30px}body.tv .rank li{font-size:20px}
+@media (max-width:640px){.podio{grid-template-columns:1fr}.rank li{flex-wrap:wrap}}

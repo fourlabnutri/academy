@@ -47,6 +47,8 @@ $("#chips").innerHTML = [a.tipo_estudo, a.nivel_evidencia && "Evidência " + a.n
 $("#t").textContent = a.titulo_pt || a.titulo_original;
 $("#src").textContent = [a.autores, a.periodico].filter(Boolean).join(" · ");
 
+supabase.from("academy_artigos_lidos").upsert({ user_id: p.id, artigo_id: a.id }, { ignoreDuplicates: true }).then(() => {});
+
 /* ações */
 const { data: s } = await supabase.from("academy_artigos_salvos").select("artigo_id").match({ user_id: p.id, artigo_id: a.id }).maybeSingle();
 let salvo = !!s;
