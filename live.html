@@ -1,0 +1,81 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css"><script src="./config.js"></script><title>Aula inaugural · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><section class="view">
+  <div class="lv">
+    <div class="lv-main">
+      <div class="video" id="video"></div>
+      <div class="lv-head"><span class="lv-badge" id="badge">Aula inaugural</span><h1 id="t"></h1><p class="muted" id="sub"></p></div>
+    </div>
+    <aside class="card lv-chat">
+      <h2>Chat ao vivo</h2>
+      <div class="lv-msgs" id="msgs" aria-live="polite"></div>
+      <form id="f" class="lv-form"><input id="m" maxlength="500" placeholder="Escreva sua mensagem" autocomplete="off" aria-label="Mensagem"><button class="btn btn-primary btn-sm">Enviar</button></form>
+      <p class="muted lv-off" id="off" hidden>O chat abre no início da transmissão.</p>
+    </aside>
+  </div>
+</section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell, isStaff, pandaUrl } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+shell(p, "live");
+const staff = isStaff(p), msgs = [];
+let live, videoAtual;
+const dataLonga = (d) => new Date(d).toLocaleString("pt-BR", { weekday: "long", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" });
+function falta(ms) {
+  const m = Math.ceil(ms / 60000), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60);
+  return d ? `${d}d ${h}h` : h ? `${h}h ${m % 60}min` : `${m} min`;
+}
+async function carregar() {
+  ({ data: live } = await supabase.from("academy_live").select("*").maybeSingle());
+  if (!live) return;
+  $("#t").textContent = live.titulo;
+  $("#sub").textContent = [live.professor, live.inicio && dataLonga(live.inicio)].filter(Boolean).join(" · ");
+  const ms = live.inicio ? new Date(live.inicio) - Date.now() : null;
+  // o player entra 30 min antes, para quem já está na sala
+  const noAr = live.yt_id && ms !== null && ms <= 30 * 60000;
+  if (noAr && videoAtual !== live.yt_id) {
+    videoAtual = live.yt_id;
+    $("#video").innerHTML = `<iframe src="${pandaUrl(live.yt_id)}" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>`;
+  } else if (!noAr) {
+    videoAtual = null;
+    $("#video").innerHTML = `<div class="lv-wait" style="--img:url('assets/live/capa.jpg')"><b>${ms === null ? "Em breve" : ms > 0 ? "Começa em " + falta(ms) : "A transmissão vai começar"}</b></div>`;
+  }
+  $("#badge").textContent = noAr && ms <= 0 ? "● Ao vivo" : "Aula inaugural";
+  const aberto = live.chat_aberto || staff;
+  $("#f").hidden = !aberto; $("#off").hidden = aberto;
+}
+function linha(c) {
+  const sel = c.oficial ? '<span class="lv-tag eq">Equipe</span>' : c.fundador ? '<span class="lv-tag">Fundador</span>' : "";
+  const mod = staff && c.user_id ? `<span class="lv-mod"><button data-del="${c.id}">Apagar</button>${c.user_id !== p.id ? `<button data-blk="${c.user_id}">Bloquear</button>` : ""}</span>` : "";
+  return `<div class="lv-msg"><b>${esc(c.autor_nome)}</b>${sel}<p>${esc(c.corpo)}</p>${mod}</div>`;
+}
+function pintar() {
+  const box = $("#msgs"), fim = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  box.innerHTML = msgs.map(linha).join("") || '<p class="muted">Nenhuma mensagem ainda.</p>';
+  if (fim) box.scrollTop = box.scrollHeight;
+}
+await carregar();
+const { data: hist } = await supabase.from("academy_live_chat").select("*").order("created_at", { ascending: false }).limit(150);
+msgs.push(...(hist || []).reverse()); pintar();
+$("#msgs").scrollTop = $("#msgs").scrollHeight;
+setInterval(carregar, 30000);
+supabase.channel("live-chat")
+  .on("postgres_changes", { event: "INSERT", schema: "public", table: "academy_live_chat" }, ({ new: c }) => { if (!msgs.some((x) => x.id === c.id)) { msgs.push(c); if (msgs.length > 300) msgs.shift(); pintar(); } })
+  .on("postgres_changes", { event: "DELETE", schema: "public", table: "academy_live_chat" }, ({ old }) => { const i = msgs.findIndex((x) => x.id === old.id); if (i >= 0) { msgs.splice(i, 1); pintar(); } })
+  .subscribe();
+$("#f").onsubmit = async (e) => {
+  e.preventDefault();
+  const corpo = $("#m").value.trim(); if (!corpo) return;
+  const { data, error } = await supabase.from("academy_live_chat").insert({ user_id: p.id, corpo }).select().single();
+  if (error) {
+    $("#m").placeholder = /aguarde/.test(error.message) ? "Aguarde um instante para enviar de novo" : /bloqueado/.test(error.message) ? "Você não pode enviar mensagens" : /fechado/.test(error.message) ? "O chat está fechado" : "Não foi possível enviar";
+    return;
+  }
+  $("#m").value = ""; $("#m").placeholder = "Escreva sua mensagem";
+  if (!msgs.some((x) => x.id === data.id)) { msgs.push(data); $("#msgs").scrollTop = 1e9; pintar(); $("#msgs").scrollTop = 1e9; }
+};
+$("#msgs").onclick = async (e) => {
+  const d = e.target.dataset;
+  if (d.del) { await supabase.from("academy_live_chat").delete().eq("id", d.del); const i = msgs.findIndex((x) => x.id === d.del); if (i >= 0) { msgs.splice(i, 1); pintar(); } }
+  if (d.blk && confirm("Bloquear esta pessoa no chat?")) await supabase.from("academy_live_bloqueados").upsert({ user_id: d.blk });
+};
+</script></body></html>

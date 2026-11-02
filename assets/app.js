@@ -63,6 +63,7 @@ export function shell(p, active) {
   const items = [
     ["Aprender"],
     ["inicio", "Início", "home"],
+    ["live", "Aula inaugural", "play"],
     ["artigos", "Artigos", "doc"],
     ["forum", "Fórum", "chat"],
     ["ranking", "Ranking", "rank"],
@@ -72,6 +73,10 @@ export function shell(p, active) {
   if (["editor", "revisor", "admin"].includes(p.role)) {
     if (!items.some((i) => i[0] === "Administração")) items.push(["Administração"]);
     items.push(["admin/conteudo", "Conteúdo", "edit"]);
+  }
+  if (STAFF.includes(p.role)) {
+    if (!items.some((i) => i[0] === "Administração")) items.push(["Administração"]);
+    items.push(["admin/live", "Aula inaugural", "edit"]);
   }
   const nav = items.map(([href, label, ic]) => (label === undefined
     ? `<div class="nav-cap">${href}</div>`

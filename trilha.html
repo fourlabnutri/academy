@@ -14,7 +14,7 @@ const [{ data: t }, { data: aulas }, { data: prog }] = await Promise.all([
   supabase.from("academy_aulas").select("id,titulo,professor,duracao_seg,resumo,panda_video_id").eq("trilha_id", id).eq("etapa", "publicado").order("ordem"),
   supabase.from("academy_progresso").select("aula_id,concluida").eq("user_id", p.id),
 ]);
-if (!t) { $("#t").textContent = "Trilha não encontrada"; throw 0; }
+if (!t) { location.replace("inicio"); throw 0; }
 document.title = t.titulo + " · FourLab Academy";
 $("#hero").style.setProperty("--img", `url('assets/trilhas/${t.slug}.jpg')`);
 $("#t").textContent = t.titulo; $("#d").textContent = t.descricao || "";

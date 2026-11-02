@@ -15,7 +15,7 @@ import { supabase, $, $$, esc, guard, shell, qs, fmtDur, pandaUrl, showMsg } fro
 const p = await guard(); if (!p) throw 0;
 shell(p, "inicio");
 const { data: a } = await supabase.from("academy_aulas").select("*, academy_trilhas(id,titulo)").eq("id", qs("id")).maybeSingle();
-if (!a) { $("#t").textContent = "Aula não encontrada"; throw 0; }
+if (!a) { location.replace("inicio"); throw 0; }
 document.title = a.titulo + " · FourLab Academy";
 $("#t").textContent = a.titulo; $("#prof").textContent = a.professor || "";
 $("#trl").textContent = a.academy_trilhas.titulo; $("#trl").href = "trilha?id=" + a.trilha_id;

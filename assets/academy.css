@@ -449,3 +449,23 @@ body{font-size:15px}
   .seg{overflow-x:auto;flex-wrap:nowrap;max-width:100%}.seg button{white-space:nowrap}
   .ftrow{padding:14px}.ftn{min-width:48px}
 }
+
+/* ---------- lançamento: fundador, anúncio e live ---------- */
+.selo-fundador{display:inline-flex;align-items:center;gap:7px;margin-top:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:800;color:#141013;background:linear-gradient(90deg,var(--yellow),var(--orange))}
+.hero-live .lv-pill{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:var(--pink);color:#fff}
+.hero-live .lv-count{font-size:15px;font-weight:700;color:var(--yellow)}
+.hero-acts{display:flex;gap:10px;flex-wrap:wrap}
+.tr-locked{padding:22px;border:1px dashed var(--line);border-radius:18px;color:var(--ink-2);font-size:14px}
+.lv{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+.lv-head{padding-top:16px}.lv-head h1{font-size:26px;margin:8px 0 4px}
+.lv-badge{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--pink)}
+.lv-wait{position:absolute;inset:0;display:flex;align-items:flex-end;padding:24px;color:#fff;font-size:22px;background:linear-gradient(180deg,rgba(20,16,19,.1),rgba(20,16,19,.9)),var(--img,none) center/cover,var(--grad-side)}
+.lv-chat{display:flex;flex-direction:column;gap:12px;height:calc(100vh - 80px);min-height:420px;position:sticky;top:20px}
+.lv-chat h2{font-size:16px}
+.lv-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;min-height:0}
+.lv-msg{font-size:13.5px}.lv-msg p{margin-top:2px;color:var(--ink-2);overflow-wrap:anywhere}
+.lv-tag{margin-left:6px;font-size:10px;font-weight:800;color:var(--yellow)}.lv-tag.eq{color:var(--orange)}
+.lv-mod{display:flex;gap:10px;margin-top:2px}.lv-mod button{background:none;border:0;padding:0;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.lv-form{display:flex;gap:8px}.lv-form[hidden]{display:none}.lv-form input{flex:1;min-width:0}
+.lv-off{font-size:13px}
+@media (max-width:1080px){.lv{grid-template-columns:1fr}.lv-chat{position:static;height:60vh}}
