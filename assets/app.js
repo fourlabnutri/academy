@@ -76,7 +76,7 @@ export function shell(p, active) {
   }
   if (STAFF.includes(p.role)) {
     if (!items.some((i) => i[0] === "Administração")) items.push(["Administração"]);
-    items.push(["admin/live", "Aula inaugural", "edit"]);
+    items.push(["admin/painel", "Painel", "rank"], ["admin/live", "Aula inaugural", "edit"]);
   }
   const nav = items.map(([href, label, ic]) => (label === undefined
     ? `<div class="nav-cap">${href}</div>`

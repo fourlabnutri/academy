@@ -1,0 +1,78 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css"><script src="../config.js"></script><title>Painel · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy · Administração</span><span class="avatar" id="meAv"></span></div>
+<section class="view">
+  <div class="page-head"><div><h1>Painel</h1><div class="sub">Cadastros, membros fundadores e fórum.</div></div><button class="btn btn-ghost btn-sm" id="csv">Exportar cadastros (CSV)</button></div>
+  <div class="stats3 adm-kpis" id="kpis"></div>
+  <div class="adm-grid">
+    <section class="card"><h2 class="adm-h">Cadastros por dia</h2><div id="dias"></div></section>
+    <section class="card"><h2 class="adm-h">Profissão</h2><div id="prof"></div><h2 class="adm-h" style="margin-top:18px">Modalidade</h2><div id="mod"></div></section>
+  </div>
+  <section class="card tbl" style="margin-top:20px">
+    <div class="adm-tbh"><h2 class="adm-h">Profissionais</h2><input class="search" id="q" placeholder="Buscar nome, e-mail, cidade ou registro"></div>
+    <table><thead><tr><th>Nº</th><th>Profissional</th><th>Registro</th><th>Cidade</th><th>Origem</th><th>Cadastro</th><th></th></tr></thead><tbody id="rows"></tbody></table>
+  </section>
+  <section class="card tbl" style="margin-top:20px">
+    <div class="adm-tbh"><h2 class="adm-h">Fórum</h2><a class="btn btn-primary btn-sm" href="../forum">Abrir fórum</a></div>
+    <table><thead><tr><th>Tópico</th><th>Autor</th><th>Respostas</th><th>Última</th><th></th></tr></thead><tbody id="forum"></tbody></table>
+  </section>
+</section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell, fmtDate, isStaff } from "../assets/app.js";
+const p = await guard(); if (!p) throw 0;
+if (!isStaff(p)) { location.replace("../inicio"); throw 0; }
+shell(p, "admin/painel");
+const podeSuspender = ["comercial", "admin"].includes(p.role);
+let pros = [], tops = [];
+const conta = (arr, k) => { const o = {}; arr.forEach((x) => { const v = x[k] || "Não informado"; o[v] = (o[v] || 0) + 1; }); return Object.entries(o).sort((a, b) => b[1] - a[1]); };
+const barras = (pares) => { const max = Math.max(1, ...pares.map((x) => x[1])); return pares.map(([k, n]) => `<div class="adm-row"><span>${esc(k)}</span><i style="width:${n / max * 100}%"></i><b>${n}</b></div>`).join("") || '<p class="muted">Sem dados.</p>'; };
+async function load() {
+  const [{ data: pr }, { data: tp }] = await Promise.all([
+    supabase.from("academy_profiles").select("id,nome,email,profissao,conselho,registro,cidade,uf,modalidade,origem,status,fundador_num,created_at").eq("role", "prescritor").order("created_at", { ascending: false }),
+    supabase.from("academy_forum_topicos").select("id,titulo,autor_nome,respostas,ultima_em,fixado").order("ultima_em", { ascending: false }).limit(100),
+  ]);
+  pros = pr || []; tops = tp || [];
+  const hoje = new Date().toDateString();
+  $("#kpis").innerHTML = [
+    [pros.filter((x) => x.status === "aprovado").length, "profissionais ativos"],
+    [pros.filter((x) => x.fundador_num).length, "membros fundadores"],
+    [pros.filter((x) => new Date(x.created_at).toDateString() === hoje).length, "cadastros hoje"],
+    [pros.filter((x) => x.origem === "endurance-applied").length, "pelo QR do evento"],
+  ].map(([v, l]) => `<div class="st"><b>${v}</b><span>${l}</span></div>`).join("");
+  const dias = {};
+  [...pros].reverse().forEach((x) => { const d = new Date(x.created_at).toLocaleDateString("pt-BR"); dias[d] = (dias[d] || 0) + 1; });
+  $("#dias").innerHTML = barras(Object.entries(dias).slice(-14));
+  $("#prof").innerHTML = barras(conta(pros, "profissao"));
+  $("#mod").innerHTML = barras(conta(pros, "modalidade"));
+  render();
+  $("#forum").innerHTML = tops.map((t) => `<tr><td><a href="../topico?id=${t.id}"><b>${t.fixado ? "📌 " : ""}${esc(t.titulo)}</b></a></td><td>${esc(t.autor_nome)}</td><td class="num">${t.respostas}</td><td>${fmtDate(t.ultima_em)}</td>
+    <td style="white-space:nowrap;text-align:right"><button class="btn btn-ghost btn-sm" data-fix="${t.id}">${t.fixado ? "Desafixar" : "Fixar"}</button> <button class="btn btn-danger btn-sm" data-del="${t.id}">Apagar</button></td></tr>`).join("") || '<tr><td colspan="5" class="empty">Nenhum tópico.</td></tr>';
+}
+function render() {
+  const q = $("#q").value.trim().toLowerCase();
+  const l = pros.filter((x) => !q || [x.nome, x.email, x.cidade, x.registro].join(" ").toLowerCase().includes(q));
+  $("#rows").innerHTML = l.map((x) => `<tr><td class="num">${x.fundador_num ? `<span class="pill ok">★ ${x.fundador_num}</span>` : "—"}</td><td><b>${esc(x.nome)}</b><div class="muted" style="font-size:12px">${esc(x.email)} · ${esc(x.profissao || "")}</div></td>
+    <td class="num">${esc([x.conselho, x.registro].filter(Boolean).join(" "))}</td><td>${esc([x.cidade, x.uf].filter(Boolean).join(" / "))}</td><td>${x.origem === "endurance-applied" ? "Evento" : "Site"}</td><td>${fmtDate(x.created_at)}</td>
+    <td style="text-align:right">${!podeSuspender ? "" : x.status === "aprovado" ? `<button class="btn btn-ghost btn-sm" data-sus="${x.id}">Suspender</button>` : `<button class="btn btn-primary btn-sm" data-rea="${x.id}">Reativar</button>`}</td></tr>`).join("") || '<tr><td colspan="7" class="empty">Nenhum cadastro.</td></tr>';
+}
+$("#q").oninput = render;
+document.addEventListener("click", async (e) => {
+  const d = e.target.dataset || {};
+  let r;
+  if (d.sus && confirm("Suspender o acesso desta pessoa?")) r = await supabase.from("academy_profiles").update({ status: "suspenso" }).eq("id", d.sus);
+  else if (d.rea) r = await supabase.from("academy_profiles").update({ status: "aprovado" }).eq("id", d.rea);
+  else if (d.fix) r = await supabase.from("academy_forum_topicos").update({ fixado: !tops.find((t) => t.id === d.fix).fixado }).eq("id", d.fix);
+  else if (d.del && confirm("Apagar este tópico e todas as respostas?")) r = await supabase.from("academy_forum_topicos").delete().eq("id", d.del);
+  else return;
+  if (r.error) alert("Não foi possível salvar: " + r.error.message);
+  load();
+});
+$("#csv").onclick = () => {
+  const cols = ["fundador_num", "nome", "email", "profissao", "conselho", "registro", "cidade", "uf", "modalidade", "origem", "status", "created_at"];
+  const csv = [cols.join(";"), ...pros.map((x) => cols.map((c) => `"${String(x[c] ?? "").replace(/"/g, '""')}"`).join(";"))].join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" }));
+  a.download = `academy-cadastros-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+};
+load(); setInterval(load, 60000);
+</script></body></html>
