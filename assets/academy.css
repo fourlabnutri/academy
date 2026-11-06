@@ -478,3 +478,4 @@ body{font-size:15px}
 .adm-row i{display:block;height:9px;border-radius:9px;background:linear-gradient(90deg,var(--yellow),var(--orange));min-width:4px}
 .adm-tbh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 4px 12px}.adm-tbh .search{max-width:320px}
 @media (max-width:860px){.adm-kpis{grid-template-columns:repeat(2,1fr)}.adm-grid{grid-template-columns:1fr}}
+.hero-live{background-position:0 0,right 22%,0 0}
