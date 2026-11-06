@@ -16,7 +16,7 @@ const [{ data: t }, { data: aulas }, { data: prog }] = await Promise.all([
 ]);
 if (!t) { location.replace("inicio"); throw 0; }
 document.title = t.titulo + " · FourLab Academy";
-$("#hero").style.setProperty("--img", `url('assets/trilhas/${t.slug}.jpg')`);
+$("#hero").style.setProperty("--img", `url('/assets/trilhas/${t.slug}.jpg')`);
 $("#t").textContent = t.titulo; $("#d").textContent = t.descricao || "";
 const done = new Set((prog || []).filter((x) => x.concluida).map((x) => x.aula_id));
 const l = aulas || [], d = l.filter((a) => done.has(a.id)).length, pct = l.length ? Math.round(d / l.length * 100) : 0;

@@ -37,7 +37,7 @@ async function carregar() {
     $("#video").innerHTML = `<iframe src="${pandaUrl(live.yt_id)}" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>`;
   } else if (!noAr) {
     videoAtual = null;
-    $("#video").innerHTML = `<div class="lv-wait" style="--img:url('assets/live/capa.jpg')"><b>${ms === null ? "Em breve" : ms > 0 ? "Começa em " + falta(ms) : "A transmissão vai começar"}</b></div>`;
+    $("#video").innerHTML = `<div class="lv-wait" style="--img:url('/assets/live/capa.jpg')"><b>${ms === null ? "Em breve" : ms > 0 ? "Começa em " + falta(ms) : "A transmissão vai começar"}</b></div>`;
   }
   $("#badge").textContent = noAr && ms <= 0 ? "● Ao vivo" : "Aula inaugural";
   const aberto = live.chat_aberto || staff;

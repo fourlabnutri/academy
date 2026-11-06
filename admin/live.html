@@ -10,7 +10,7 @@
     <div class="field"><label for="libera">Liberar as aulas em</label><input id="libera" type="datetime-local"></div>
     <label style="display:flex;gap:8px;align-items:center"><input id="chat" type="checkbox" style="width:auto"> Chat aberto para os profissionais</label>
     <div class="msg" id="msg"></div>
-    <button class="btn btn-primary" style="align-self:flex-start">Salvar</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary">Salvar</button><button type="button" class="btn btn-ghost" id="agora">Liberar aulas agora</button></div>
   </form>
 </section></main></div>
 <script type="module">
@@ -24,6 +24,12 @@ const iso = (v) => (v ? new Date(v).toISOString() : null);
 const yt = (v) => { const s = v.trim(); return (s.match(/(?:youtu\.be\/|[?&]v=|embed\/|live\/|shorts\/)([\w-]{11})/) || [])[1] || s || null; };
 $("#titulo").value = l.titulo; $("#professor").value = l.professor || ""; $("#inicio").value = local(l.inicio);
 $("#yt_id").value = l.yt_id || ""; $("#libera").value = local(l.aulas_liberam_em); $("#chat").checked = l.chat_aberto;
+$("#agora").onclick = async () => {
+  if (!confirm("Liberar trilhas, aulas e debates para todos os profissionais agora?")) return;
+  const { error } = await supabase.from("academy_live").update({ aulas_liberam_em: new Date().toISOString() }).eq("id", true);
+  if (error) return showMsg($("#msg"), "Não foi possível liberar: " + error.message);
+  $("#libera").value = local(new Date()); showMsg($("#msg"), "Aulas liberadas.", "ok");
+};
 $("#f").onsubmit = async (e) => {
   e.preventDefault();
   const { error } = await supabase.from("academy_live").update({ titulo: $("#titulo").value.trim(), professor: $("#professor").value.trim(), inicio: iso($("#inicio").value), yt_id: yt($("#yt_id").value), aulas_liberam_em: iso($("#libera").value), chat_aberto: $("#chat").checked }).eq("id", true);
