@@ -1,0 +1,43 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="./favicon.ico"><script src="./config.js"></script><title>Certificado · FourLab Academy</title>
+<style>
+@page{size:A4 landscape;margin:0}
+*{box-sizing:border-box;margin:0}
+body{background:#2a2226;font-family:"Maven Pro",system-ui,sans-serif;color:#141013;display:flex;flex-direction:column;align-items:center;gap:18px;padding:24px 12px}
+.acts{display:flex;gap:10px}
+.acts a,.acts button{font:700 13px system-ui;padding:11px 20px;border-radius:999px;border:0;cursor:pointer;text-decoration:none;background:#e96709;color:#fff}
+.acts a{background:#3a3035}
+.wrap{width:min(100%,1123px);aspect-ratio:297/210;container-type:inline-size}
+.cert{position:relative;width:100%;height:100%;background:#fff;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:0 9cqw;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.cert::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2.2cqw;background:linear-gradient(180deg,#fdcc03,#e96709,#e3055f,#731b58)}
+.cert::after{content:"";position:absolute;right:-12cqw;top:-18cqw;width:44cqw;height:44cqw;border-radius:50%;background:radial-gradient(circle,rgba(233,103,9,.12),transparent 65%)}
+.logo{position:absolute;top:5cqw;left:9cqw;height:4.6cqw;filter:brightness(0)}
+.k{font-size:1.4cqw;font-weight:800;letter-spacing:.5cqw;text-transform:uppercase;color:#e96709}
+h1{font-size:5.2cqw;font-weight:800;letter-spacing:-.1cqw;margin:1.4cqw 0 .6cqw;line-height:1.05}
+.txt{font-size:1.9cqw;line-height:1.55;color:#4a3f44;max-width:70cqw}
+.txt b{color:#141013}
+.bar{height:.5cqw;width:16cqw;border-radius:1cqw;background:linear-gradient(90deg,#fdcc03,#e96709,#e3055f,#731b58);margin:2.4cqw 0}
+.rod{position:absolute;left:9cqw;right:9cqw;bottom:4.5cqw;display:flex;justify-content:space-between;align-items:flex-end;font-size:1.25cqw;color:#7a6d72}
+.rod b{display:block;color:#141013;font-size:1.5cqw}
+.msg{color:#f5f0ed;font:600 15px system-ui}
+@media print{body{background:#fff;padding:0;display:block}.acts{display:none}.wrap{width:297mm;height:210mm}.cert{box-shadow:none}}
+</style></head>
+<body>
+<div class="acts"><a href="certificados">Voltar</a><button id="pdf">Baixar PDF</button></div>
+<div class="wrap"><div class="cert" id="c"><p class="msg">Carregando…</p></div></div>
+<script type="module">
+import { supabase, guard, esc, qs } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+const { data: c } = await supabase.from("academy_certificados").select("codigo,emitido_em,academy_trilhas(titulo,carga_horas)").eq("codigo", qs("c")).eq("user_id", p.id).maybeSingle();
+if (!c) { document.getElementById("c").innerHTML = '<p class="txt">Certificado não encontrado.</p>'; throw 0; }
+const data = new Date(c.emitido_em).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
+const t = c.academy_trilhas;
+document.title = `Certificado ${t.titulo} · ${p.nome}`;
+document.getElementById("c").innerHTML = `
+  <img class="logo" src="assets/logo-academy-alpha.png" alt="FourLab Academy">
+  <p class="k">Certificado de conclusão</p>
+  <h1>${esc(p.nome)}</h1>
+  <div class="bar"></div>
+  <p class="txt">concluiu a trilha <b>${esc(t.titulo)}</b> no FourLab Academy${t.carga_horas ? `, com carga horária de <b>${t.carga_horas} horas</b>` : ""}.</p>
+  <div class="rod"><div><b>FourLab Nutrition</b>Emitido em ${data}</div><div style="text-align:right"><b>Código ${esc(c.codigo)}</b>academy.fourlabnutrition.com.br</div></div>`;
+document.getElementById("pdf").onclick = () => window.print();
+</script></body></html>

@@ -13,6 +13,12 @@
   </section>
   <section class="card tbl" style="margin-top:20px">
     <div class="adm-tbh"><h2 class="adm-h">Fórum</h2><a class="btn btn-primary btn-sm" href="../forum">Abrir fórum</a></div>
+    <form id="ed" class="ftform" hidden style="display:flex;flex-direction:column;gap:12px;padding:0 4px 16px">
+      <div class="field"><label for="edCat">Categoria</label><select id="edCat"><option value="caso">Casos clínicos</option><option value="duvida">Dúvidas</option><option value="debate">Debates das aulas</option><option value="fourlab">Fale com a FourLab</option></select></div>
+      <div class="field"><label for="edTit">Título</label><input id="edTit" maxlength="160" required></div>
+      <div class="field"><label for="edTxt">Texto</label><textarea id="edTxt" rows="8" maxlength="8000" required></textarea></div>
+      <div style="display:flex;gap:10px"><button class="btn btn-primary btn-sm">Salvar tópico</button><button type="button" class="btn btn-ghost btn-sm" id="edX">Cancelar</button></div>
+    </form>
     <table><thead><tr><th>Tópico</th><th>Autor</th><th>Respostas</th><th>Última</th><th></th></tr></thead><tbody id="forum"></tbody></table>
   </section>
 </section></main></div>
@@ -28,7 +34,7 @@ const barras = (pares) => { const max = Math.max(1, ...pares.map((x) => x[1])); 
 async function load() {
   const [{ data: pr }, { data: tp }] = await Promise.all([
     supabase.from("academy_profiles").select("id,nome,email,profissao,conselho,registro,cidade,uf,modalidade,origem,status,fundador_num,created_at").eq("role", "prescritor").order("created_at", { ascending: false }),
-    supabase.from("academy_forum_topicos").select("id,titulo,autor_nome,respostas,ultima_em,fixado").order("ultima_em", { ascending: false }).limit(100),
+    supabase.from("academy_forum_topicos").select("id,titulo,corpo,categoria,autor_nome,respostas,ultima_em,fixado").order("ultima_em", { ascending: false }).limit(100),
   ]);
   pros = pr || []; tops = tp || [];
   const hoje = new Date().toDateString();
@@ -45,7 +51,7 @@ async function load() {
   $("#mod").innerHTML = barras(conta(pros, "modalidade"));
   render();
   $("#forum").innerHTML = tops.map((t) => `<tr><td><a href="../topico?id=${t.id}"><b>${t.fixado ? "📌 " : ""}${esc(t.titulo)}</b></a></td><td>${esc(t.autor_nome)}</td><td class="num">${t.respostas}</td><td>${fmtDate(t.ultima_em)}</td>
-    <td style="white-space:nowrap;text-align:right"><button class="btn btn-ghost btn-sm" data-fix="${t.id}">${t.fixado ? "Desafixar" : "Fixar"}</button> <button class="btn btn-danger btn-sm" data-del="${t.id}">Apagar</button></td></tr>`).join("") || '<tr><td colspan="5" class="empty">Nenhum tópico.</td></tr>';
+    <td style="white-space:nowrap;text-align:right"><button class="btn btn-ghost btn-sm" data-edit="${t.id}">Editar</button> <button class="btn btn-ghost btn-sm" data-fix="${t.id}">${t.fixado ? "Desafixar" : "Fixar"}</button> <button class="btn btn-danger btn-sm" data-del="${t.id}">Apagar</button></td></tr>`).join("") || '<tr><td colspan="5" class="empty">Nenhum tópico.</td></tr>';
 }
 function render() {
   const q = $("#q").value.trim().toLowerCase();
@@ -55,11 +61,24 @@ function render() {
     <td style="text-align:right">${!podeSuspender ? "" : x.status === "aprovado" ? `<button class="btn btn-ghost btn-sm" data-sus="${x.id}">Suspender</button>` : `<button class="btn btn-primary btn-sm" data-rea="${x.id}">Reativar</button>`}</td></tr>`).join("") || '<tr><td colspan="7" class="empty">Nenhum cadastro.</td></tr>';
 }
 $("#q").oninput = render;
+let editando = null;
+$("#edX").onclick = () => { $("#ed").hidden = true; editando = null; };
+$("#ed").onsubmit = async (e) => {
+  e.preventDefault();
+  const { error } = await supabase.from("academy_forum_topicos").update({ categoria: $("#edCat").value, titulo: $("#edTit").value.trim(), corpo: $("#edTxt").value.trim() }).eq("id", editando);
+  if (error) return alert("Não foi possível salvar: " + error.message);
+  $("#ed").hidden = true; editando = null; load();
+};
 document.addEventListener("click", async (e) => {
   const d = e.target.dataset || {};
   let r;
   if (d.sus && confirm("Suspender o acesso desta pessoa?")) r = await supabase.from("academy_profiles").update({ status: "suspenso" }).eq("id", d.sus);
   else if (d.rea) r = await supabase.from("academy_profiles").update({ status: "aprovado" }).eq("id", d.rea);
+  else if (d.edit) {
+    const t = tops.find((x) => x.id === d.edit); editando = t.id;
+    $("#edCat").value = t.categoria; $("#edTit").value = t.titulo; $("#edTxt").value = t.corpo;
+    $("#ed").hidden = false; $("#ed").scrollIntoView({ behavior: "smooth", block: "center" }); return;
+  }
   else if (d.fix) r = await supabase.from("academy_forum_topicos").update({ fixado: !tops.find((t) => t.id === d.fix).fixado }).eq("id", d.fix);
   else if (d.del && confirm("Apagar este tópico e todas as respostas?")) r = await supabase.from("academy_forum_topicos").delete().eq("id", d.del);
   else return;
