@@ -86,7 +86,10 @@ $("#pratica").innerHTML = Object.values(np).some(Boolean) ? `
 
 /* aba Texto */
 let lang = "pt";
-const paintText = () => { $("#prose").innerHTML = lang === "en" ? (a.texto_original ? md(a.texto_original) : "<p class='muted'>Texto original disponível no estudo original.</p>") : md(a.texto_pt || "Tradução em preparação."); };
+let figs = "";
+try { const r = await fetch(`/assets/figuras/${a.slug}/index.json`); if (r.ok) figs = (await r.json()).map((g) => `<figure><img src="${g.src}" alt="Figura ${g.n}" loading="lazy"><figcaption><b>Figura ${g.n}.</b> ${esc(g.legenda)}</figcaption></figure>`).join(""); } catch {}
+if (figs) figs = `<h2>Figuras do estudo</h2>${figs}<p class="muted" style="font-size:13px">Figuras reproduzidas do estudo original.</p>`;
+const paintText = () => { $("#prose").innerHTML = lang === "en" ? (a.texto_original ? md(a.texto_original) : "<p class='muted'>Texto original disponível no estudo original.</p>") : md(a.texto_pt || "Tradução em preparação."); $("#prose").insertAdjacentHTML("beforeend", figs); };
 if (!a.texto_original) $("#lang").hidden = true;
 paintText();
 $("#lang").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; lang = b.dataset.l; $$("#lang button").forEach((y) => y.classList.toggle("on", y === b)); paintText(); };
