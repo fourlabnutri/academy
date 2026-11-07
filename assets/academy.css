@@ -518,7 +518,7 @@ body{font-size:15px}
 .bloco-n{white-space:nowrap;flex-shrink:0}
 .bio{position:relative;margin-top:8px}
 .bio p{margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.bio.aberta p{display:block}
+.bio.aberta p{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible;max-height:none}
 .bio-mais{display:flex;align-items:center;justify-content:center;width:30px;height:30px;margin-top:6px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);color:var(--orange);cursor:pointer}
 .bio-mais svg{width:16px;height:16px;transition:transform .2s}
 .bio.aberta .bio-mais svg{transform:rotate(180deg)}
@@ -532,3 +532,4 @@ body{font-size:15px}
 .pop-tag{align-self:flex-start;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
 .pop-item.on .pop-tag{background:var(--pink);color:#fff;border-color:var(--pink)}
 @keyframes popIn{from{opacity:0}}
+.bio-mais{position:relative;z-index:2;touch-action:manipulation;-webkit-tap-highlight-color:transparent}

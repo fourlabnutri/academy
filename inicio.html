@@ -96,7 +96,7 @@ if ((trilhas || []).length) {
   if (isStaff(p) && emAnuncio) $("#secTrilhas").insertAdjacentHTML("afterbegin", '<p class="staff-note">Só a equipe vê as trilhas agora. Os profissionais veem cada aula na data de liberação.</p>');
 }
 
-document.addEventListener("click", (e) => { const b = e.target.closest(".bio-mais"); if (b) b.parentElement.classList.toggle("aberta"); });
+document.querySelectorAll(".bio-mais").forEach((b) => { b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); b.parentElement.classList.toggle("aberta"); }; });
 
 /* pop-up: debates do evento */
 const { data: deb } = await supabase.from("academy_forum_topicos").select("id,titulo").or("titulo.like.Bloco 1 ·%,titulo.like.Bloco 2 ·%").order("titulo");
