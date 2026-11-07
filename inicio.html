@@ -33,7 +33,7 @@ import { supabase, $, esc, guard, shell, fmtDur, capaAula, isStaff } from "./ass
 const p = await guard(); if (!p) throw 0;
 shell(p, "inicio");
 $("#ola").textContent = "Olá, " + p.nome.split(" ")[0];
-if (p.fundador_num) $("#selo").innerHTML = `<span class="selo-fundador">★ Membro fundador nº ${p.fundador_num}</span>`;
+if (p.fundador_num) $("#selo").innerHTML = `<span class="selo-fundador"><svg class="si" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg> Membro fundador nº ${p.fundador_num}</span>`;
 const slugify = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 const PROF = [
