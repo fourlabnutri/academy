@@ -7,11 +7,11 @@ a as (
   from academy_aulas au join t on t.id = au.trilha_id
 )
 update academy_aulas x set libera_em = case
-  when a.slug = 'carboidratos-endurance' and a.n = 1 then timestamptz '2026-11-13 08:00-03'
-  when a.slug = 'carboidratos-endurance' and a.n = 2 then timestamptz '2026-11-19 08:00-03'
-  when a.slug = 'hidratacao-eletrolitos' and a.n = 1 then timestamptz '2026-11-26 08:00-03'
-  when a.slug = 'hidratacao-eletrolitos' and a.n = 2 then timestamptz '2026-12-03 08:00-03'
-  when a.slug = 'hidratacao-eletrolitos' and a.n = 3 then timestamptz '2026-12-10 08:00-03'
+  when a.slug = 'carboidratos-endurance' and a.n = 1 then timestamptz '2026-11-19 08:00-03'
+  when a.slug = 'carboidratos-endurance' and a.n = 2 then timestamptz '2026-11-26 08:00-03'
+  when a.slug = 'hidratacao-eletrolitos' and a.n = 1 then timestamptz '2026-12-03 08:00-03'
+  when a.slug = 'hidratacao-eletrolitos' and a.n = 2 then timestamptz '2026-12-10 08:00-03'
+  when a.slug = 'hidratacao-eletrolitos' and a.n = 3 then timestamptz '2026-12-17 08:00-03'
 end
 from a where a.id = x.id and x.libera_em is null;
 

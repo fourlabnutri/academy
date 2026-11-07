@@ -50,7 +50,7 @@ const PROF = [
 const MARCELO = { nome: "Marcelo de Carvalho", foto: "marcelo",
   tags: [["Ciclista", "ciência em movimento"], ["Triatleta", "performance com longevidade"], ["Professor", "29 anos de experiência"]],
   bio: "Nutricionista e profissional de Educação Física, há 29 anos conectando performance, saúde e longevidade. Especialista em Nutrição Funcional e Esportiva, Fitoterapia, Bioquímica e Metabolismo na Atividade Física. É coordenador do NEEX, formador na NutriScience e WellX ProSchool, consultor técnico-científico da Integralmédica/Nutrify e criador do Endufiles." };
-const profCard = (x) => `<div class="prof"><img src="assets/professores/${x.foto}.jpg" alt=""><div><h3>${esc(x.nome)}</h3>${x.tags.length ? `<div class="prof-tags">${x.tags.map(([a, b]) => `<span><b>${a}</b>${b}</span>`).join("")}</div>` : ""}${x.bio ? `<p>${esc(x.bio)}</p>` : ""}</div></div>`;
+const profCard = (x) => `<div class="prof"><img src="assets/professores/${x.foto}.jpg" alt=""><div><h3>${esc(x.nome)}</h3>${x.tags.length ? `<div class="prof-tags">${x.tags.map(([a, b]) => `<span><b>${a}</b>${b}</span>`).join("")}</div>` : ""}${x.bio ? `<div class="bio"><p>${esc(x.bio)}</p><button class="bio-mais" type="button" aria-label="Ler mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>` : ""}</div></div>`;
 
 const [{ data: trilhas }, { data: aulas }, { data: prog }, { data: arts }, { data: rank }, { data: live }, { data: crono }] = await Promise.all([
   supabase.from("academy_trilhas").select("*").eq("etapa", "publicado").order("ordem"),
@@ -94,6 +94,19 @@ if ((trilhas || []).length) {
     return `<a class="tcard" href="trilha?id=${t.id}"><div class="tcover" style="--img:url('/assets/trilhas/${esc(t.slug)}.jpg')"><span class="tcount">${n} aula${n === 1 ? "" : "s"}</span></div><div class="tbody"><h3>${esc(t.titulo)}</h3><p>${esc(t.descricao || "")}</p><div class="bar"><i style="width:${pct}%"></i></div><small>${pct ? pct + "% concluído" : "Não iniciada"}</small></div></a>`;
   }).join("");
   if (isStaff(p) && emAnuncio) $("#secTrilhas").insertAdjacentHTML("afterbegin", '<p class="staff-note">Só a equipe vê as trilhas agora. Os profissionais veem cada aula na data de liberação.</p>');
+}
+
+document.addEventListener("click", (e) => { const b = e.target.closest(".bio-mais"); if (b) b.parentElement.classList.toggle("aberta"); });
+
+/* pop-up: debates do evento */
+const { data: deb } = await supabase.from("academy_forum_topicos").select("id,titulo").or("titulo.like.Bloco 1 ·%,titulo.like.Bloco 2 ·%").order("titulo");
+let visto = false; try { visto = sessionStorage.getItem("popDebate") === "1"; } catch {}
+if ((deb || []).length && !visto) {
+  const b1 = deb.find((t) => t.titulo.startsWith("Bloco 1")), b2 = deb.find((t) => t.titulo.startsWith("Bloco 2"));
+  const item = (t, tag, prof, on) => t ? `<a class="pop-item${on ? " on" : ""}" href="topico?id=${t.id}"><span class="pop-tag">${tag}</span><b>${esc(t.titulo.replace(/^Bloco \d · /, ""))}</b><small>${prof}</small></a>` : "";
+  document.body.insertAdjacentHTML("beforeend", `<div class="pop" id="pop"><div class="pop-box"><button class="pop-x" aria-label="Fechar">×</button><p class="kicker">Endurance Applied</p><h2>Venha debater os temas do evento</h2><p class="muted">Traga suas dúvidas e sua experiência para o fórum.</p>${item(b2, "Rolando agora", "Paulo Mendes", true)}${item(b1, "Já aconteceu", "Marcelo de Carvalho", false)}</div></div>`);
+  const fecha = () => { $("#pop").remove(); try { sessionStorage.setItem("popDebate", "1"); } catch {} };
+  $("#pop").onclick = (e) => { if (e.target.id === "pop" || e.target.closest(".pop-x")) fecha(); else if (e.target.closest(".pop-item")) { try { sessionStorage.setItem("popDebate", "1"); } catch {} } };
 }
 
 /* 5. biblioteca e fórum */
