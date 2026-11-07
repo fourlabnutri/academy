@@ -2,7 +2,7 @@
 create or replace function public.academy_forum_cat_check() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  if not academy_is_staff() and new.categoria not in ('duvida', 'fourlab') then
+  if auth.uid() is not null and not academy_is_staff() and new.categoria not in ('duvida', 'fourlab') then
     raise exception 'Somente a equipe publica casos clínicos e debates.';
   end if;
   return new;
