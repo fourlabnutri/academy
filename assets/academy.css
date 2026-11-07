@@ -484,3 +484,5 @@ body{font-size:15px}
 
 .cta-visita{background:linear-gradient(120deg,#e96709,#e3055f);margin:4px 0 8px}
 .voltar{display:inline-flex;align-self:flex-start;text-decoration:none;margin-bottom:14px}
+.prose p,.prose li,.block .lead,.pr-hero p,.pr-item p,.pr-ind p,.pr-warn p{text-align:justify;hyphens:auto;-webkit-hyphens:auto}
+.prose figure{margin:24px 0}.prose figure img{width:100%;height:auto;border-radius:12px;background:#fff}.prose figcaption{font-size:13px;color:var(--muted,#7a6d72);margin-top:8px;text-align:left}
