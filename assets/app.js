@@ -88,7 +88,7 @@ export function shell(p, active) {
     : `<a class="nav-btn ${href === active ? "active" : ""}" href="${root}${href}" title="${label}"><span class="ic">${svg(ic)}</span><span class="label">${label}</span></a>`)).join("");
   document.body.insertAdjacentHTML("afterbegin", `
     <aside class="sidebar" aria-label="Menu">
-      <div class="sidebar-logo"><svg class="mark" viewBox="0 0 150 120" aria-hidden="true" fill="#fff"><path d="M10 10h52v20H32v18h26v20H32v42H10z"/><rect x="66" y="40" width="70" height="20" rx="10" transform="rotate(-38 101 50)"/><rect x="74" y="70" width="70" height="20" rx="10" transform="rotate(-38 109 80)"/></svg><img src="${root}assets/logo-academy.png" alt="FourLab Academy"></div>
+      <div class="sidebar-logo"><img class="mark" src="${root}assets/mark-f.png" alt=""><img src="${root}assets/logo-academy.png" alt="FourLab Academy"></div>
       <nav class="sidebar-nav">${nav}
         <button class="nav-btn" id="sair" title="Sair"><span class="ic">${svg("out")}</span><span class="label">Sair</span></button>
       </nav>
