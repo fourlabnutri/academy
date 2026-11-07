@@ -3,6 +3,7 @@
   <header class="home-top"><div><p class="kicker">FourLab Academy</p><h1 id="ola">Olá</h1><div id="selo"></div></div><span class="avatar" id="meAv"></span></header>
   <div id="hero"></div>
   <div id="conduz"></div>
+  <div id="modulo1"></div>
   <div id="visita"></div>
 
   <section class="sec">
@@ -73,11 +74,28 @@ $("#hero").innerHTML = emAnuncio ? `<div class="hero-aula hero-live" style="--im
   : prox ? `<a class="hero-aula" href="aula?id=${prox.id}" style="--img:url('${capaAula(prox.panda_video_id)}')"><div class="hero-in"><span class="kicker">${done.size ? "Continue de onde parou" : "Comece por aqui"}</span><h2>${esc(prox.titulo)}</h2><p>${esc(prox.professor || "")}${prox.duracao_seg ? " · " + fmtDur(prox.duracao_seg) : ""}</p><span class="btn btn-primary"><svg class="si" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg> Assistir aula</span></div></a>` : "";
 if (emAnuncio) $("#conduz").innerHTML = `<div class="card conduz"><p class="kicker">Quem conduz a aula inaugural</p>${profCard(MARCELO)}</div>`;
 
+/* destaque: primeiro módulo (Paulo Mendes) */
+const dia = (d) => new Date(d).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" }).replace(".", "");
+const m1 = (crono || []).filter((c) => c.trilha_slug === "carboidratos-endurance");
+const RES = ["O metabolismo e a dinâmica dos carboidratos nos esportes de endurance.", "Prescrição no intra-treino, treinamento intestinal e planejamento de provas."];
+const P = PROF[0];
+$("#modulo1").innerHTML = `<section class="m1">
+  <div class="m1-foto"><img src="assets/professores/paulo.jpg" alt="Paulo Mendes"></div>
+  <div class="m1-txt">
+    <span class="lv-pill">Primeiro módulo · lançamento</span>
+    <h2>Carboidratos no endurance</h2>
+    <p class="m1-sub">com <b>Paulo Mendes</b> · ${m1.length || 2} aulas · a primeira libera ${m1[0]?.libera_em ? dia(m1[0].libera_em) : "qui, 19/11"}</p>
+    <p class="m1-desc">Metabolismo, prescrição no intra-treino, treinamento intestinal e planejamento de provas: o módulo que abre o FourLab Academy, direto de quem vive o endurance na prática.</p>
+    <div class="prof-tags">${P.tags.map(([a, b]) => `<span><b>${a}</b>${b}</span>`).join("")}</div>
+    <ol class="m1-aulas">${(m1.length ? m1 : [{ aula_titulo: "Carboidratos nos esportes de endurance" }, { aula_titulo: "Carboidrato no intra-treino e planejamento de provas" }]).map((c, k) => `<li><i>Aula ${k + 1}</i><div><b>${esc(c.aula_titulo)}</b><span>${RES[k] || ""}</span></div><em>${c.liberada ? `<a href="aula?id=${c.aula_id}">Assistir</a>` : c.libera_em ? dia(c.libera_em) : ""}</em></li>`).join("")}</ol>
+    <div class="bio"><p>${esc(P.bio)}</p><button class="bio-mais" type="button" aria-label="Ler mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
+  </div>
+</section>`;
+
 /* 2. visita */
 if (p.visita_url) $("#visita").innerHTML = `<a class="cta-forum cta-visita" href="${esc(p.visita_url)}" target="_blank" rel="noopener"><div><h3>Quer receber uma visita de apresentação da FourLab?</h3><p>Reserve o melhor horário para conhecer os produtos e protocolos.</p></div><span>Reservar horário →</span></a>`;
 
 /* 3. programação em blocos */
-const dia = (d) => new Date(d).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" }).replace(".", "");
 $("#blocos").innerHTML = PROF.map((x, i) => {
   const as = (crono || []).filter((c) => c.trilha_slug === x.trilha);
   const lista = as.length ? as.map((c, k) => `<li class="${c.liberada ? "ok" : ""}">${c.liberada ? `<a href="aula?id=${c.aula_id}">` : "<span>"}<i>Aula ${k + 1}</i><b>${esc(c.aula_titulo)}</b><em>${c.liberada ? (done.has(c.aula_id) ? '<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Concluída' : '<svg class="si" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg> Assistir') : c.libera_em ? '<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Libera ' + dia(c.libera_em) : '<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Em breve'}</em>${c.liberada ? "</a>" : "</span>"}</li>`).join("") : '<li><span><b>Aulas em breve</b><em></em></span></li>';
@@ -97,17 +115,6 @@ if ((trilhas || []).length) {
 }
 
 document.querySelectorAll(".bio-mais").forEach((b) => { b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); b.parentElement.classList.toggle("aberta"); }; });
-
-/* pop-up: debates do evento */
-const { data: deb } = await supabase.from("academy_forum_topicos").select("id,titulo").or("titulo.like.Bloco 1 ·%,titulo.like.Bloco 2 ·%").order("titulo");
-let visto = false; try { visto = sessionStorage.getItem("popDebate") === "1"; } catch {}
-if ((deb || []).length && !visto) {
-  const b1 = deb.find((t) => t.titulo.startsWith("Bloco 1")), b2 = deb.find((t) => t.titulo.startsWith("Bloco 2"));
-  const item = (t, tag, prof, on) => t ? `<a class="pop-item${on ? " on" : ""}" href="topico?id=${t.id}"><span class="pop-tag">${tag}</span><b>${esc(t.titulo.replace(/^Bloco \d · /, ""))}</b><small>${prof}</small></a>` : "";
-  document.body.insertAdjacentHTML("beforeend", `<div class="pop" id="pop"><div class="pop-box"><button class="pop-x" aria-label="Fechar">×</button><p class="kicker">Endurance Applied</p><h2>Venha debater os temas do evento</h2><p class="muted">Traga suas dúvidas e sua experiência para o fórum.</p>${item(b1, "Bloco 1 · debate aberto", "Marcelo de Carvalho", true)}${item(b2, "Bloco 2 · debate aberto", "Marcelo de Carvalho e Paulo Mendes · géis de lactato e taurina", true)}</div></div>`);
-  const fecha = () => { $("#pop").remove(); try { sessionStorage.setItem("popDebate", "1"); } catch {} };
-  $("#pop").onclick = (e) => { if (e.target.id === "pop" || e.target.closest(".pop-x")) fecha(); else if (e.target.closest(".pop-item")) { try { sessionStorage.setItem("popDebate", "1"); } catch {} } };
-}
 
 /* 5. biblioteca e fórum */
 const temas = {}; (arts || []).forEach((a) => { if (a.tema) temas[a.tema] = (temas[a.tema] || 0) + 1; });

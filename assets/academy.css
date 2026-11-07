@@ -533,3 +533,17 @@ body{font-size:15px}
 .pop-item.on .pop-tag{background:var(--pink);color:#fff;border-color:var(--pink)}
 @keyframes popIn{from{opacity:0}}
 .bio-mais{position:relative;z-index:2;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+/* destaque do módulo 1 */
+.m1{display:grid;grid-template-columns:300px 1fr;gap:32px;margin:20px 0 8px;padding:28px;border-radius:26px;border:2px solid var(--orange);background:linear-gradient(120deg,rgba(233,103,9,.16),rgba(227,5,95,.08) 60%,var(--card))}
+.m1-foto img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:50%;padding:6px;background:linear-gradient(135deg,#fdcc03,#e96709,#e3055f,#731b58)}
+.m1-txt{display:flex;flex-direction:column;gap:12px;min-width:0}
+.m1-txt .lv-pill{align-self:flex-start;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:var(--pink);color:#fff}
+.m1 h2{font-size:clamp(26px,4vw,36px)}
+.m1-sub{color:var(--ink-2);font-size:15px}.m1-sub b{color:var(--yellow)}
+.m1-desc{color:var(--ink-2);font-size:14.5px;line-height:1.6;text-align:justify}
+.m1-aulas{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.m1-aulas li{display:grid;grid-template-columns:60px 1fr auto;gap:12px;align-items:center;padding:12px 16px;border-radius:14px;background:rgba(20,16,19,.55)}
+.m1-aulas i{font-style:normal;font-size:12px;font-weight:800;color:var(--orange)}
+.m1-aulas b{display:block;font-size:14.5px}.m1-aulas span{font-size:12.5px;color:var(--muted)}
+.m1-aulas em{font-style:normal;font-size:12.5px;font-weight:800;color:var(--yellow);white-space:nowrap}.m1-aulas em a{color:var(--orange)}
+@media (max-width:820px){.m1{grid-template-columns:1fr;padding:20px}.m1-foto img{width:160px;margin:0 auto;display:block}}
