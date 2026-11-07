@@ -2,9 +2,29 @@
 <body><div class="shell"><div></div><main><section class="view home">
   <header class="home-top"><div><p class="kicker">FourLab Academy</p><h1 id="ola">Olá</h1><div id="selo"></div></div><span class="avatar" id="meAv"></span></header>
   <div id="hero"></div>
-  <div class="stats3" id="stats"></div>
+  <div id="conduz"></div>
   <div id="visita"></div>
-  <section class="sec" id="secTrilhas"><div class="sec-head"><h2>Trilhas</h2></div><div class="tgrid" id="trilhas"></div></section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>O que é o FourLab Academy</h2></div>
+    <p class="sobre">Um portal gratuito, só para prescritores, que une ciência aplicada ao endurance e prática clínica. Quanto mais você participa, mais acesso e vantagens você tem.</p>
+    <div class="ganhos">
+      <div><b>🚀 Lançamentos em primeira mão</b><span>Conheça e teste os novos produtos FourLab antes de todo mundo.</span></div>
+      <div><b>🎓 Conteúdo exclusivo de endurance</b><span>Aulas com especialistas, liberadas toda semana, com certificado por trilha.</span></div>
+      <div><b>📚 Base científica atualizada</b><span>Estudos traduzidos, resumidos e com a aplicação na prática clínica.</span></div>
+      <div><b>💬 Fórum de debate</b><span>Casos clínicos e dúvidas discutidos com outros prescritores e com a equipe.</span></div>
+      <div><b>🤝 Perto de quem faz</b><span>Contato direto com professores, prescritores e atletas da comunidade.</span></div>
+      <div><b>🏆 Desafios, pontos e prêmios</b><span>Ganhe pontos participando e troque por itens e acessórios da marca.</span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><h2>Programação de aulas</h2></div>
+    <p class="sobre">Uma aula nova por semana. A primeira sai na sexta, 13/11, logo depois da aula inaugural, e as próximas toda quinta.</p>
+    <div id="blocos" class="blocos"></div>
+  </section>
+
+  <section class="sec" id="secTrilhas" hidden><div class="sec-head"><h2>Suas trilhas</h2></div><div class="stats3" id="stats"></div><div class="tgrid" id="trilhas" style="margin-top:16px"></div></section>
   <section class="sec"><div class="sec-head"><h2>Biblioteca científica</h2><a href="artigos">Ver tudo</a></div><div class="chipgrid" id="temas"></div></section>
   <a class="cta-forum" href="forum"><div><h3>Discuta com outros prescritores</h3><p>Debates das aulas, casos clínicos e contato direto com a equipe.</p></div><span>Abrir fórum →</span></a>
 </section></main></div>
@@ -15,35 +35,65 @@ shell(p, "inicio");
 $("#ola").textContent = "Olá, " + p.nome.split(" ")[0];
 if (p.fundador_num) $("#selo").innerHTML = `<span class="selo-fundador">★ Membro fundador nº ${p.fundador_num}</span>`;
 const slugify = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-const [{ data: trilhas }, { data: aulas }, { data: prog }, { data: arts }, { data: rank }, { data: live }, { count: lidos }] = await Promise.all([
+
+const PROF = [
+  { nome: "Paulo Mendes", trilha: "carboidratos-endurance", tema: "Carboidratos no endurance", foto: "paulo",
+    tags: [["Triatleta", "ciência vivida"], ["Ironman", "estratégia testada"], ["Ultramaratonista", "além da teoria"]],
+    bio: "Nutricionista e professor, especialista em Fisiologia do Exercício pela UnB e pós-graduado em Nutrição Clínica Funcional. Atua há mais de 15 anos na prática clínica e esportiva. É fundador do método Eix, criador da Formação em Nutrição no Endurance e palestrante em importantes eventos nacionais." },
+  { nome: "Juliana Maciel", trilha: "hidratacao-eletrolitos", tema: "Hidratação e eletrólitos", foto: "juliana", tags: [], bio: "" },
+  { nome: "Lázaro Nunes", trilha: null, tema: "Lactato, fadiga e bicarbonato", foto: "lazaro", tags: [], bio: "" },
+];
+const MARCELO = { nome: "Marcelo de Carvalho", foto: "marcelo",
+  tags: [["Ciclista", "ciência em movimento"], ["Triatleta", "performance com longevidade"], ["Professor", "29 anos de experiência"]],
+  bio: "Nutricionista e profissional de Educação Física, há 29 anos conectando performance, saúde e longevidade. Especialista em Nutrição Funcional e Esportiva, Fitoterapia, Bioquímica e Metabolismo na Atividade Física. É coordenador do NEEX, formador na NutriScience e WellX ProSchool, consultor técnico-científico da Integralmédica/Nutrify e criador do Endufiles." };
+const profCard = (x) => `<div class="prof"><img src="assets/professores/${x.foto}.jpg" alt=""><div><h3>${esc(x.nome)}</h3>${x.tags.length ? `<div class="prof-tags">${x.tags.map(([a, b]) => `<span><b>${a}</b>${b}</span>`).join("")}</div>` : ""}${x.bio ? `<p>${esc(x.bio)}</p>` : ""}</div></div>`;
+
+const [{ data: trilhas }, { data: aulas }, { data: prog }, { data: arts }, { data: rank }, { data: live }, { data: crono }] = await Promise.all([
   supabase.from("academy_trilhas").select("*").eq("etapa", "publicado").order("ordem"),
   supabase.from("academy_aulas").select("id,trilha_id,titulo,professor,duracao_seg,ordem,panda_video_id").eq("etapa", "publicado").order("ordem"),
   supabase.from("academy_progresso").select("aula_id,concluida").eq("user_id", p.id),
   supabase.from("academy_artigos").select("tema").eq("etapa", "publicado"),
   supabase.rpc("academy_ranking"),
   supabase.from("academy_live").select("*").maybeSingle(),
-  supabase.from("academy_artigos_lidos").select("artigo_id", { count: "exact", head: true }).eq("user_id", p.id),
+  supabase.rpc("academy_cronograma"),
 ]);
 const done = new Set((prog || []).filter((x) => x.concluida).map((x) => x.aula_id));
-const pos = (rank || []).findIndex((x) => x.user_id === p.id);
-$("#stats").innerHTML = [
-  (aulas || []).length ? [`${done.size}/${aulas.length}`, "aulas concluídas", "trilhas"] : [lidos || 0, "artigos lidos", "artigos"],
-  [pos >= 0 ? rank[pos].pontos : "—", "pontos", "ranking"],
-  [pos >= 0 ? `${pos + 1}º` : "—", "no ranking", "ranking"],
-].map(([v, l, h]) => `<a class="st" href="${h === "trilhas" ? "#secTrilhas" : h}"><b>${v}</b><span>${l}</span></a>`).join("");
-const prox = (aulas || []).find((a) => !done.has(a.id));
 const emAnuncio = live && !(live.aulas_liberam_em && new Date(live.aulas_liberam_em) <= new Date());
+
+/* 1. aula inaugural (ou continuar de onde parou) */
 const agenda = (l) => { const f = (d) => d.toISOString().replace(/[-:]|\.\d{3}/g, ""), i = new Date(l.inicio); return "https://calendar.google.com/calendar/render?action=TEMPLATE&text=" + encodeURIComponent(l.titulo + " · FourLab Academy") + `&dates=${f(i)}/${f(new Date(+i + 2 * 3600000))}&details=` + encodeURIComponent("https://academy.fourlabnutrition.com.br/live"); };
 const quando = (l) => new Date(l.inicio).toLocaleString("pt-BR", { weekday: "long", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" });
 const contagem = (l) => { const m = Math.ceil((new Date(l.inicio) - Date.now()) / 60000); if (m <= 0) return "Acontecendo agora"; const d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60); return "Começa em " + (d ? `${d}d ${h}h` : h ? `${h}h ${m % 60}min` : `${m} min`); };
-$("#hero").innerHTML = emAnuncio ? `<div class="hero-aula hero-live" style="--img:url('/assets/live/capa.jpg')"><div class="hero-in"><span class="lv-pill">Ao vivo e exclusivo</span><h2>${esc(live.titulo)}</h2><p>${esc(live.professor || "")}${live.inicio ? " · " + esc(quando(live)) : " · Data em breve"}</p>${live.inicio ? `<span class="lv-count">${contagem(live)}</span>` : ""}<div class="hero-acts"><a class="btn btn-primary" href="live">Ir para a sala da live</a>${live.inicio ? `<a class="btn btn-ghost" href="${agenda(live)}" target="_blank" rel="noopener">Salvar na agenda</a>` : ""}</div></div></div>` : prox ? `<a class="hero-aula" href="aula?id=${prox.id}" style="--img:url('${capaAula(prox.panda_video_id)}')"><div class="hero-in"><span class="kicker">${done.size ? "Continue de onde parou" : "Comece por aqui"}</span><h2>${esc(prox.titulo)}</h2><p>${esc(prox.professor || "")}${prox.duracao_seg ? " · " + fmtDur(prox.duracao_seg) : ""}</p><span class="btn btn-primary">▶ Assistir aula</span></div></a>` : "";
-$("#trilhas").innerHTML = (trilhas || []).map((t) => {
-  const as = (aulas || []).filter((a) => a.trilha_id === t.id), n = as.length, d = as.filter((a) => done.has(a.id)).length, pct = n ? Math.round(d / n * 100) : 0;
-  return `<a class="tcard" href="trilha?id=${t.id}"><div class="tcover" style="--img:url('/assets/trilhas/${esc(t.slug)}.jpg')"><span class="tcount">${n} aula${n === 1 ? "" : "s"}</span></div><div class="tbody"><h3>${esc(t.titulo)}</h3><p>${esc(t.descricao || "")}</p><div class="bar"><i style="width:${pct}%"></i></div><small>${pct ? pct + "% concluído" : "Não iniciada"}</small></div></a>`;
-}).join("") || '<div class="tr-locked">As trilhas com especialistas são liberadas depois da aula inaugural.</div>';
-if (isStaff(p) && emAnuncio && (trilhas || []).length) $("#secTrilhas").insertAdjacentHTML("afterbegin", '<p class="staff-note">Só a equipe vê as trilhas agora. Os profissionais veem depois da liberação (Admin › Aula inaugural).</p>');
+const prox = (aulas || []).find((a) => !done.has(a.id));
+$("#hero").innerHTML = emAnuncio ? `<div class="hero-aula hero-live" style="--img:url('/assets/live/capa.jpg')"><div class="hero-in"><span class="lv-pill">Aula inaugural · ao vivo e exclusiva</span><h2>${esc(live.titulo)}</h2><p>${esc(live.professor || "")}${live.inicio ? " · " + esc(quando(live)) : " · Data em breve"}</p>${live.inicio ? `<span class="lv-count">${contagem(live)}</span>` : ""}<div class="hero-acts"><a class="btn btn-primary" href="live">Ir para a sala da live</a>${live.inicio ? `<a class="btn btn-ghost" href="${agenda(live)}" target="_blank" rel="noopener">Salvar na agenda</a>` : ""}</div></div></div>`
+  : prox ? `<a class="hero-aula" href="aula?id=${prox.id}" style="--img:url('${capaAula(prox.panda_video_id)}')"><div class="hero-in"><span class="kicker">${done.size ? "Continue de onde parou" : "Comece por aqui"}</span><h2>${esc(prox.titulo)}</h2><p>${esc(prox.professor || "")}${prox.duracao_seg ? " · " + fmtDur(prox.duracao_seg) : ""}</p><span class="btn btn-primary">▶ Assistir aula</span></div></a>` : "";
+if (emAnuncio) $("#conduz").innerHTML = `<div class="card conduz"><p class="kicker">Quem conduz a aula inaugural</p>${profCard(MARCELO)}</div>`;
+
+/* 2. visita */
 if (p.visita_url) $("#visita").innerHTML = `<a class="cta-forum cta-visita" href="${esc(p.visita_url)}" target="_blank" rel="noopener"><div><h3>Quer receber uma visita de apresentação da FourLab?</h3><p>Reserve o melhor horário para conhecer os produtos e protocolos.</p></div><span>Reservar horário →</span></a>`;
-if (p.mod.forum === false && !isStaff(p)) document.querySelector('.cta-forum[href="forum"]').hidden = true;
+
+/* 3. programação em blocos */
+const dia = (d) => new Date(d).toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit" }).replace(".", "");
+$("#blocos").innerHTML = PROF.map((x, i) => {
+  const as = (crono || []).filter((c) => c.trilha_slug === x.trilha);
+  const lista = as.length ? as.map((c, k) => `<li class="${c.liberada ? "ok" : ""}">${c.liberada ? `<a href="aula?id=${c.aula_id}">` : "<span>"}<i>Aula ${k + 1}</i><b>${esc(c.aula_titulo)}</b><em>${c.liberada ? (done.has(c.aula_id) ? "✓ Concluída" : "▶ Assistir") : c.libera_em ? "🔒 Libera " + dia(c.libera_em) : "🔒 Em breve"}</em>${c.liberada ? "</a>" : "</span>"}</li>`).join("") : '<li><span><b>Aulas em breve</b><em>🔒 Datas a definir</em></span></li>';
+  return `<article class="bloco"><div class="bloco-h"><span class="bloco-n">Bloco ${i + 1}</span><h3>${esc(x.tema)}</h3></div><div class="bloco-c">${profCard(x)}<ol class="bloco-aulas">${lista}</ol></div></article>`;
+}).join("");
+
+/* 4. trilhas liberadas */
+if ((trilhas || []).length) {
+  $("#secTrilhas").hidden = false;
+  const pos = (rank || []).findIndex((x) => x.user_id === p.id);
+  $("#stats").innerHTML = [[`${done.size}/${(aulas || []).length}`, "aulas concluídas", "#secTrilhas"], [pos >= 0 ? rank[pos].pontos : "—", "pontos", "ranking"], [pos >= 0 ? `${pos + 1}º` : "—", "no ranking", "ranking"]].map(([v, l, h]) => `<a class="st" href="${h}"><b>${v}</b><span>${l}</span></a>`).join("");
+  $("#trilhas").innerHTML = trilhas.map((t) => {
+    const as = (aulas || []).filter((a) => a.trilha_id === t.id), n = as.length, d = as.filter((a) => done.has(a.id)).length, pct = n ? Math.round(d / n * 100) : 0;
+    return `<a class="tcard" href="trilha?id=${t.id}"><div class="tcover" style="--img:url('/assets/trilhas/${esc(t.slug)}.jpg')"><span class="tcount">${n} aula${n === 1 ? "" : "s"}</span></div><div class="tbody"><h3>${esc(t.titulo)}</h3><p>${esc(t.descricao || "")}</p><div class="bar"><i style="width:${pct}%"></i></div><small>${pct ? pct + "% concluído" : "Não iniciada"}</small></div></a>`;
+  }).join("");
+  if (isStaff(p) && emAnuncio) $("#secTrilhas").insertAdjacentHTML("afterbegin", '<p class="staff-note">Só a equipe vê as trilhas agora. Os profissionais veem cada aula na data de liberação.</p>');
+}
+
+/* 5. biblioteca e fórum */
 const temas = {}; (arts || []).forEach((a) => { if (a.tema) temas[a.tema] = (temas[a.tema] || 0) + 1; });
 $("#temas").innerHTML = Object.entries(temas).sort().map(([t, n]) => `<a class="tchip" href="artigos?tema=${slugify(t)}" style="--img:url('/assets/temas/${slugify(t)}.jpg')"><b>${esc(t)}</b><span>${n} estudo${n === 1 ? "" : "s"}</span></a>`).join("") || '<p class="muted">Em breve.</p>';
+if (p.mod.forum === false && !isStaff(p)) document.querySelector('.cta-forum[href="forum"]').hidden = true;
 </script></body></html>
