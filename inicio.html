@@ -99,12 +99,12 @@ if ((trilhas || []).length) {
 document.querySelectorAll(".bio-mais").forEach((b) => { b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); b.parentElement.classList.toggle("aberta"); }; });
 
 /* pop-up: debates do evento */
-const { data: deb } = await supabase.from("academy_forum_topicos").select("id,titulo").or("titulo.like.Bloco 1 ·%,titulo.like.Bloco 2 ·%").order("titulo");
+const { data: deb } = await supabase.from("academy_forum_topicos").select("id,titulo").or("titulo.like.Bloco 2 ·%,titulo.like.Bloco 3 ·%").order("titulo");
 let visto = false; try { visto = sessionStorage.getItem("popDebate") === "1"; } catch {}
 if ((deb || []).length && !visto) {
-  const b1 = deb.find((t) => t.titulo.startsWith("Bloco 1")), b2 = deb.find((t) => t.titulo.startsWith("Bloco 2"));
+  const b2 = deb.find((t) => t.titulo.startsWith("Bloco 2")), b3 = deb.find((t) => t.titulo.startsWith("Bloco 3"));
   const item = (t, tag, prof, on) => t ? `<a class="pop-item${on ? " on" : ""}" href="topico?id=${t.id}"><span class="pop-tag">${tag}</span><b>${esc(t.titulo.replace(/^Bloco \d · /, ""))}</b><small>${prof}</small></a>` : "";
-  document.body.insertAdjacentHTML("beforeend", `<div class="pop" id="pop"><div class="pop-box"><button class="pop-x" aria-label="Fechar">×</button><p class="kicker">Endurance Applied</p><h2>Venha debater os temas do evento</h2><p class="muted">Traga suas dúvidas e sua experiência para o fórum.</p>${item(b1, "Bloco 1 · debate aberto", "Paulo Mendes", true)}${item(b2, "Bloco 2 · debate aberto", "Marcelo de Carvalho", true)}</div></div>`);
+  document.body.insertAdjacentHTML("beforeend", `<div class="pop" id="pop"><div class="pop-box"><button class="pop-x" aria-label="Fechar">×</button><p class="kicker">Endurance Applied</p><h2>Venha debater os temas do evento</h2><p class="muted">Traga suas dúvidas e sua experiência para o fórum.</p>${item(b2, "Géis de lactato · debate aberto", "Marcelo de Carvalho", true)}${item(b3, "Taurina · debate aberto", "Paulo Mendes", true)}</div></div>`);
   const fecha = () => { $("#pop").remove(); try { sessionStorage.setItem("popDebate", "1"); } catch {} };
   $("#pop").onclick = (e) => { if (e.target.id === "pop" || e.target.closest(".pop-x")) fecha(); else if (e.target.closest(".pop-item")) { try { sessionStorage.setItem("popDebate", "1"); } catch {} } };
 }
