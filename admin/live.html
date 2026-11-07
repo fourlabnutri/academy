@@ -1,12 +1,14 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css"><script src="../config.js"></script><title>Aula inaugural · FourLab Academy</title></head>
 <body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy · Administração</span><span class="avatar" id="meAv"></span></div>
 <section class="view">
-  <div class="page-head"><div><h1>Aula inaugural</h1><div class="sub">Sem data de liberação, as aulas continuam ocultas para os profissionais.</div></div></div>
+  <div class="page-head"><div><h1>Lançamento e módulos</h1><div class="sub">Sem data de liberação, as aulas continuam ocultas para os profissionais.</div></div></div>
   <form class="card" id="f" style="max-width:620px;display:flex;flex-direction:column;gap:14px">
     <div class="field"><label for="titulo">Título</label><input id="titulo" required></div>
     <div class="field"><label for="professor">Professor</label><input id="professor"></div>
     <div class="field"><label for="inicio">Data e hora da live</label><input id="inicio" type="datetime-local"></div>
     <div class="field"><label for="yt_id">Link da live no YouTube</label><input id="yt_id" placeholder="https://youtube.com/live/..."></div>
+    <div class="field"><label for="visita">Link de agendamento de visita (Visitor Flow)</label><input id="visita" placeholder="https://..."></div>
+    <div class="field"><label>Módulos visíveis para os profissionais</label><div id="mods" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div><small class="muted">A equipe sempre vê tudo. Trilhas e aulas seguem a data de liberação abaixo.</small></div>
     <div class="field"><label for="libera">Liberar as aulas em</label><input id="libera" type="datetime-local"></div>
     <label style="display:flex;gap:8px;align-items:center"><input id="chat" type="checkbox" style="width:auto"> Chat aberto para os profissionais</label>
     <div class="msg" id="msg"></div>
@@ -24,6 +26,10 @@ const iso = (v) => (v ? new Date(v).toISOString() : null);
 const yt = (v) => { const s = v.trim(); return (s.match(/(?:youtu\.be\/|[?&]v=|embed\/|live\/|shorts\/)([\w-]{11})/) || [])[1] || s || null; };
 $("#titulo").value = l.titulo; $("#professor").value = l.professor || ""; $("#inicio").value = local(l.inicio);
 $("#yt_id").value = l.yt_id || ""; $("#libera").value = local(l.aulas_liberam_em); $("#chat").checked = l.chat_aberto;
+const MODS = [["live", "Aula inaugural"], ["artigos", "Artigos"], ["forum", "Fórum"], ["ranking", "Ranking"], ["quiz", "Desafio (quiz)"], ["certificados", "Certificados"]];
+const mod = { artigos: true, forum: true, ranking: true, quiz: false, certificados: true, live: true, ...(l.modulos || {}) };
+$("#mods").innerHTML = MODS.map(([k, n]) => `<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-m="${k}" ${mod[k] ? "checked" : ""} style="width:auto"> ${n}</label>`).join("");
+$("#visita").value = l.visita_url || "";
 $("#agora").onclick = async () => {
   if (!confirm("Liberar trilhas, aulas e debates para todos os profissionais agora?")) return;
   const { error } = await supabase.from("academy_live").update({ aulas_liberam_em: new Date().toISOString() }).eq("id", true);
@@ -32,7 +38,7 @@ $("#agora").onclick = async () => {
 };
 $("#f").onsubmit = async (e) => {
   e.preventDefault();
-  const { error } = await supabase.from("academy_live").update({ titulo: $("#titulo").value.trim(), professor: $("#professor").value.trim(), inicio: iso($("#inicio").value), yt_id: yt($("#yt_id").value), aulas_liberam_em: iso($("#libera").value), chat_aberto: $("#chat").checked }).eq("id", true);
+  const { error } = await supabase.from("academy_live").update({ titulo: $("#titulo").value.trim(), professor: $("#professor").value.trim(), inicio: iso($("#inicio").value), yt_id: yt($("#yt_id").value), aulas_liberam_em: iso($("#libera").value), chat_aberto: $("#chat").checked, visita_url: $("#visita").value.trim() || null, modulos: Object.fromEntries([...document.querySelectorAll("[data-m]")].map((c) => [c.dataset.m, c.checked])) }).eq("id", true);
   error ? showMsg($("#msg"), "Não foi possível salvar: " + error.message) : showMsg($("#msg"), "Salvo.", "ok");
 };
 </script></body></html>

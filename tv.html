@@ -3,21 +3,21 @@
 <style>
 *{box-sizing:border-box;margin:0}
 html,body{height:100%;background:#141013;color:#f5f0ed;font-family:"Maven Pro",Montserrat,system-ui,sans-serif;overflow:hidden;cursor:none}
-#palco{position:fixed;inset:0 0 19vh 0;display:grid;place-items:center;background:#000}
+#palco{position:fixed;inset:0 0 11vh 0;display:grid;place-items:center;background:#000}
 #palco video,#palco img{width:100%;height:100%;object-fit:contain}
 #vazio{color:#9d8f88;font-size:2.4vh;text-align:center;padding:4vh}
-.barra{position:fixed;left:0;right:0;bottom:0;height:19vh;display:flex;align-items:center;gap:4vw;padding:0 3.5vw;
-  background:linear-gradient(90deg,#1e181b,#271f23);border-top:.6vh solid;border-image:linear-gradient(90deg,#fdcc03,#e96709,#e3055f,#731b58) 1}
-.logo{height:9vh}
+.barra{position:fixed;left:0;right:0;bottom:0;height:11vh;display:flex;align-items:center;gap:4vw;padding:0 3.5vw;
+  background:linear-gradient(90deg,#1e181b,#271f23);border-top:.4vh solid;border-image:linear-gradient(90deg,#fdcc03,#e96709,#e3055f,#731b58) 1}
+.logo{height:5.5vh}
 .cont{display:flex;align-items:center;gap:2.2vw;margin-left:auto}
-.selo{display:flex;align-items:center;gap:1.6vw;padding:1.6vh 2.6vw;border-radius:999px;background:linear-gradient(90deg,#fdcc03,#e96709);color:#141013;box-shadow:0 0 4vh rgba(253,204,3,.25)}
-.selo .n{font-size:8.5vh;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-.selo .t{font-size:2.3vh;font-weight:800;letter-spacing:.35vh;text-transform:uppercase;line-height:1.25}
+.selo{display:flex;align-items:center;gap:1.6vw;padding:.8vh 2vw;border-radius:999px;background:linear-gradient(90deg,#fdcc03,#e96709);color:#141013;box-shadow:0 0 4vh rgba(253,204,3,.25)}
+.selo .n{font-size:5.2vh;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.selo .t{font-size:1.5vh;font-weight:800;letter-spacing:.35vh;text-transform:uppercase;line-height:1.25}
 .selo.pulo{animation:pulo 1.2s ease}
 @keyframes pulo{0%{transform:scale(1)}30%{transform:scale(1.12);box-shadow:0 0 10vh rgba(253,204,3,.7)}100%{transform:scale(1)}}
 .cta{display:flex;align-items:center;gap:1.4vw}
-.cta p{font-size:2.5vh;font-weight:700;line-height:1.3;max-width:20vw}.cta b{color:#fdcc03}
-.qr{height:15vh;border-radius:1.2vh;background:#fff;padding:.6vh}
+.cta p{font-size:1.8vh;font-weight:700;line-height:1.3;max-width:20vw}.cta b{color:#fdcc03}
+.qr{height:9.4vh;border-radius:1.2vh;background:#fff;padding:.6vh}
 </style></head>
 <body>
 <div id="palco"><p id="vazio">Coloque os vídeos na pasta tv/midia e liste em tv/playlist.js</p></div>

@@ -6,7 +6,7 @@
 <script type="module">
 import { supabase, $, esc, guard, shell } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
-shell(p, "ranking");
+shell(p, "quiz");
 // RASCUNHO: revisar com o Prof. Lázaro antes do evento. Gabarito só no SQL 005.
 const Q = [
   ["O lactato é a causa da fadiga muscular?", ["Sim, é a principal causa", "Não, é um marcador do estresse metabólico", "Só em atletas amadores"]],

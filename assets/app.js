@@ -55,6 +55,9 @@ export async function guard(roles) {
   if (!p) { location.replace(root + "login"); return null; }
   if (p.status !== "aprovado") { location.replace(root + "pendente"); return null; }
   if (roles && !roles.includes(p.role)) { location.replace(root + "inicio"); return null; }
+  const { data: l } = await supabase.from("academy_live").select("modulos,visita_url").maybeSingle();
+  p.mod = { artigos: true, forum: true, ranking: true, quiz: false, certificados: true, live: true, ...(l?.modulos || {}) };
+  p.visita_url = l?.visita_url || "";
   return p;
 }
 
@@ -67,8 +70,10 @@ export function shell(p, active) {
     ["artigos", "Artigos", "doc"],
     ["forum", "Fórum", "chat"],
     ["ranking", "Ranking", "rank"],
+    ["quiz", "Desafio", "check"],
     ["certificados", "Certificados", "award"],
-  ];
+  ].filter((i) => !i[1] || i[0] === "inicio" || STAFF.includes(p.role) || p.mod?.[i[0]] !== false);
+  if (!STAFF.includes(p.role) && p.mod?.[active] === false) { location.replace(root + "inicio"); return; }
   if (["comercial", "admin"].includes(p.role)) items.push(["Administração"], ["admin/aprovacoes", "Aprovações", "check"]);
   if (["editor", "revisor", "admin"].includes(p.role)) {
     if (!items.some((i) => i[0] === "Administração")) items.push(["Administração"]);
@@ -76,7 +81,7 @@ export function shell(p, active) {
   }
   if (STAFF.includes(p.role)) {
     if (!items.some((i) => i[0] === "Administração")) items.push(["Administração"]);
-    items.push(["admin/painel", "Painel", "rank"], ["admin/live", "Aula inaugural", "edit"]);
+    items.push(["admin/painel", "Painel", "rank"], ["admin/live", "Lançamento e módulos", "edit"]);
   }
   const nav = items.map(([href, label, ic]) => (label === undefined
     ? `<div class="nav-cap">${href}</div>`

@@ -7,10 +7,10 @@
   <div class="podio" id="podio"></div><ol class="rank" id="lista"></ol>
 </section></main></div>
 <script type="module">
-import { supabase, $, esc, guard, shell, qs } from "./assets/app.js";
+import { supabase, $, esc, guard, shell, qs, isStaff } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
 const tv = qs("tv") === "1";
-if (tv) { document.body.classList.add("tv"); $("#toQuiz").hidden = true; } else shell(p, "ranking");
+if (tv) { document.body.classList.add("tv"); $("#toQuiz").hidden = true; } else { shell(p, "ranking"); if (p.mod.quiz === false && !isStaff(p)) $("#toQuiz").hidden = true; }
 const selo = (n) => n ? `<span class="selo">Fundador nº ${n}</span>` : "";
 async function load() {
   const { data } = await supabase.rpc("academy_ranking");

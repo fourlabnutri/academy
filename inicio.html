@@ -3,6 +3,7 @@
   <header class="home-top"><div><p class="kicker">FourLab Academy</p><h1 id="ola">Olá</h1><div id="selo"></div></div><span class="avatar" id="meAv"></span></header>
   <div id="hero"></div>
   <div class="stats3" id="stats"></div>
+  <div id="visita"></div>
   <section class="sec" id="secTrilhas"><div class="sec-head"><h2>Trilhas</h2></div><div class="tgrid" id="trilhas"></div></section>
   <section class="sec"><div class="sec-head"><h2>Biblioteca científica</h2><a href="artigos">Ver tudo</a></div><div class="chipgrid" id="temas"></div></section>
   <a class="cta-forum" href="forum"><div><h3>Discuta com outros prescritores</h3><p>Debates das aulas, casos clínicos e contato direto com a equipe.</p></div><span>Abrir fórum →</span></a>
@@ -41,6 +42,8 @@ $("#trilhas").innerHTML = (trilhas || []).map((t) => {
   return `<a class="tcard" href="trilha?id=${t.id}"><div class="tcover" style="--img:url('/assets/trilhas/${esc(t.slug)}.jpg')"><span class="tcount">${n} aula${n === 1 ? "" : "s"}</span></div><div class="tbody"><h3>${esc(t.titulo)}</h3><p>${esc(t.descricao || "")}</p><div class="bar"><i style="width:${pct}%"></i></div><small>${pct ? pct + "% concluído" : "Não iniciada"}</small></div></a>`;
 }).join("") || '<div class="tr-locked">As trilhas com especialistas são liberadas depois da aula inaugural.</div>';
 if (isStaff(p) && emAnuncio && (trilhas || []).length) $("#secTrilhas").insertAdjacentHTML("afterbegin", '<p class="staff-note">Só a equipe vê as trilhas agora. Os profissionais veem depois da liberação (Admin › Aula inaugural).</p>');
+if (p.visita_url) $("#visita").innerHTML = `<a class="cta-forum cta-visita" href="${esc(p.visita_url)}" target="_blank" rel="noopener"><div><h3>Quer receber uma visita de apresentação da FourLab?</h3><p>Nossa equipe vai até você apresentar os produtos e protocolos. Reserve o melhor horário.</p></div><span>Reservar horário →</span></a>`;
+if (p.mod.forum === false && !isStaff(p)) document.querySelector('.cta-forum[href="forum"]').hidden = true;
 const temas = {}; (arts || []).forEach((a) => { if (a.tema) temas[a.tema] = (temas[a.tema] || 0) + 1; });
 $("#temas").innerHTML = Object.entries(temas).sort().map(([t, n]) => `<a class="tchip" href="artigos?tema=${slugify(t)}" style="--img:url('/assets/temas/${slugify(t)}.jpg')"><b>${esc(t)}</b><span>${n} estudo${n === 1 ? "" : "s"}</span></a>`).join("") || '<p class="muted">Em breve.</p>';
 </script></body></html>
