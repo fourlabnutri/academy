@@ -104,7 +104,7 @@ let visto = false; try { visto = sessionStorage.getItem("popDebate") === "1"; } 
 if ((deb || []).length && !visto) {
   const b1 = deb.find((t) => t.titulo.startsWith("Bloco 1")), b2 = deb.find((t) => t.titulo.startsWith("Bloco 2"));
   const item = (t, tag, prof, on) => t ? `<a class="pop-item${on ? " on" : ""}" href="topico?id=${t.id}"><span class="pop-tag">${tag}</span><b>${esc(t.titulo.replace(/^Bloco \d · /, ""))}</b><small>${prof}</small></a>` : "";
-  document.body.insertAdjacentHTML("beforeend", `<div class="pop" id="pop"><div class="pop-box"><button class="pop-x" aria-label="Fechar">×</button><p class="kicker">Endurance Applied</p><h2>Venha debater os temas do evento</h2><p class="muted">Traga suas dúvidas e sua experiência para o fórum.</p>${item(b2, "Rolando agora", "Paulo Mendes", true)}${item(b1, "Já aconteceu", "Marcelo de Carvalho", false)}</div></div>`);
+  document.body.insertAdjacentHTML("beforeend", `<div class="pop" id="pop"><div class="pop-box"><button class="pop-x" aria-label="Fechar">×</button><p class="kicker">Endurance Applied</p><h2>Venha debater os temas do evento</h2><p class="muted">Traga suas dúvidas e sua experiência para o fórum.</p>${item(b2, "Rolando agora", "Marcelo de Carvalho", true)}${item(b1, "Já aconteceu", "Paulo Mendes", false)}</div></div>`);
   const fecha = () => { $("#pop").remove(); try { sessionStorage.setItem("popDebate", "1"); } catch {} };
   $("#pop").onclick = (e) => { if (e.target.id === "pop" || e.target.closest(".pop-x")) fecha(); else if (e.target.closest(".pop-item")) { try { sessionStorage.setItem("popDebate", "1"); } catch {} } };
 }
