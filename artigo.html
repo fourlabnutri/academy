@@ -41,6 +41,7 @@ const { data: a } = await supabase.from("academy_artigos").select("*").eq("id", 
 if (!a) { $("#t").textContent = "Artigo não encontrado"; throw 0; }
 const x = a.extras || {}, np = x.na_pratica || {};
 document.title = (a.titulo_pt || a.titulo_original) + " · FourLab Academy";
+document.querySelector(".view")?.insertAdjacentHTML("afterbegin", `<a class="btn btn-ghost btn-sm voltar" href="${a.tema ? "artigos?tema=" + slugify(a.tema) : "artigos"}">← Voltar${a.tema ? " para " + esc(a.tema) : ""}</a>`);
 if (a.tema) $("#crumb").innerHTML += ` / <a href="artigos?tema=${slugify(a.tema)}">${esc(a.tema)}</a>`;
 $("#cover").innerHTML = `<img src="${foto(a.slug)}" alt=""><span class="cover-tema">${esc(a.tema || "")}</span>`;
 $("#chips").innerHTML = [a.tipo_estudo, a.nivel_evidencia && "Evidência " + a.nivel_evidencia.toLowerCase(), a.ano].filter(Boolean).map((c, i) => `<span class="chip${i ? " chip-ghost" : ""}">${esc(c)}</span>`).join("");

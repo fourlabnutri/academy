@@ -29,7 +29,7 @@ const card = (a) => `<a class="acard" href="artigo?id=${a.id}">${capa(a)}
 
 if (temaAtual) {
   $("#crumb").innerHTML = `<a href="artigos">Biblioteca científica</a> / ${esc(temaAtual)}`;
-  $("#head").innerHTML = `<div class="tema-hero" style="--img:url('/assets/temas/${slugify(temaAtual)}.jpg')"><span class="tema-pill">${esc(temaAtual)}</span></div>`;
+  $("#head").innerHTML = `<a class="btn btn-ghost btn-sm voltar" href="artigos">← Voltar para a biblioteca</a><div class="tema-hero" style="--img:url('/assets/temas/${slugify(temaAtual)}.jpg')"><span class="tema-pill">${esc(temaAtual)}</span></div>`;
 } else {
   $("#head").innerHTML = `<h1>Biblioteca científica</h1><p class="sub">Estudos selecionados pela equipe FourLab, traduzidos e resumidos para a prática clínica.</p>`;
 }

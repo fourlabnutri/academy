@@ -25,9 +25,11 @@ h1{font-size:5.2cqw;font-weight:800;letter-spacing:-.1cqw;margin:1.4cqw 0 .6cqw;
 <div class="acts"><a href="certificados">Voltar</a><button id="pdf">Baixar PDF</button></div>
 <div class="wrap"><div class="cert" id="c"><p class="msg">Carregando…</p></div></div>
 <script type="module">
-import { supabase, guard, esc, qs } from "./assets/app.js";
+import { supabase, guard, esc, qs, isStaff } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
-const { data: c } = await supabase.from("academy_certificados").select("codigo,emitido_em,academy_trilhas(titulo,carga_horas)").eq("codigo", qs("c")).eq("user_id", p.id).maybeSingle();
+let c;
+if (qs("modelo") && isStaff(p)) { const { data: t } = await supabase.from("academy_trilhas").select("titulo,carga_horas").eq("id", qs("modelo")).maybeSingle(); if (t) c = { codigo: "MODELO-0000", emitido_em: new Date().toISOString(), academy_trilhas: t }; }
+else ({ data: c } = await supabase.from("academy_certificados").select("codigo,emitido_em,academy_trilhas(titulo,carga_horas)").eq("codigo", qs("c")).eq("user_id", p.id).maybeSingle());
 if (!c) { document.getElementById("c").innerHTML = '<p class="txt">Certificado não encontrado.</p>'; throw 0; }
 const data = new Date(c.emitido_em).toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 const t = c.academy_trilhas;

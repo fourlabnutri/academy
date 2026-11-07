@@ -88,7 +88,7 @@ export function shell(p, active) {
     : `<a class="nav-btn ${href === active ? "active" : ""}" href="${root}${href}" title="${label}"><span class="ic">${svg(ic)}</span><span class="label">${label}</span></a>`)).join("");
   document.body.insertAdjacentHTML("afterbegin", `
     <aside class="sidebar" aria-label="Menu">
-      <div class="sidebar-logo"><svg class="mark" viewBox="0 0 120 150" aria-hidden="true"><defs><linearGradient id="mk1" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#f5d02a"/><stop offset="1" stop-color="#ee6a12"/></linearGradient><linearGradient id="mk2" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#ea1166"/><stop offset="1" stop-color="#fff"/></linearGradient></defs><line x1="22" y1="78" x2="72" y2="28" stroke="url(#mk1)" stroke-width="30" stroke-linecap="round"/><line x1="24" y1="128" x2="98" y2="54" stroke="url(#mk2)" stroke-width="30" stroke-linecap="round"/></svg><img src="${root}assets/logo-academy.png" alt="FourLab Academy"></div>
+      <div class="sidebar-logo"><svg class="mark" viewBox="0 0 150 120" aria-hidden="true" fill="#fff"><path d="M10 10h52v20H32v18h26v20H32v42H10z"/><rect x="66" y="40" width="70" height="20" rx="10" transform="rotate(-38 101 50)"/><rect x="74" y="70" width="70" height="20" rx="10" transform="rotate(-38 109 80)"/></svg><img src="${root}assets/logo-academy.png" alt="FourLab Academy"></div>
       <nav class="sidebar-nav">${nav}
         <button class="nav-btn" id="sair" title="Sair"><span class="ic">${svg("out")}</span><span class="label">Sair</span></button>
       </nav>

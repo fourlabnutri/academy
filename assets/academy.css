@@ -242,7 +242,7 @@ html{background:var(--paper)}
 
 /* ---------- SIDEBAR LOGO ---------- */
 .sidebar-logo{position:relative;height:40px;margin:0 0 26px 0}
-.sidebar-logo .mark{position:absolute;left:8px;top:2px;width:32px;height:36px;transition:opacity .16s}
+.sidebar-logo .mark{position:absolute;left:6px;top:4px;width:40px;height:32px;transition:opacity .16s}
 .sidebar-logo img{position:absolute;left:10px;top:4px;height:30px;opacity:0;transition:opacity .16s}
 .sidebar:hover .sidebar-logo .mark,.sidebar:focus-within .sidebar-logo .mark{opacity:0}
 .sidebar:hover .sidebar-logo img,.sidebar:focus-within .sidebar-logo img{opacity:1}
@@ -483,3 +483,4 @@ body{font-size:15px}
 .staff-note{margin:-4px 0 14px;padding:10px 14px;border-radius:12px;background:var(--surface-2);border:1px dashed var(--line);font-size:12.5px;color:var(--ink-2)}
 
 .cta-visita{background:linear-gradient(120deg,#e96709,#e3055f);margin:4px 0 8px}
+.voltar{display:inline-flex;align-self:flex-start;text-decoration:none;margin-bottom:14px}
