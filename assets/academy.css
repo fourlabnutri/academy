@@ -547,3 +547,20 @@ body{font-size:15px}
 .m1-aulas b{display:block;font-size:14.5px}.m1-aulas span{font-size:12.5px;color:var(--muted)}
 .m1-aulas em{font-style:normal;font-size:12.5px;font-weight:800;color:var(--yellow);white-space:nowrap}.m1-aulas em a{color:var(--orange)}
 @media (max-width:820px){.m1{grid-template-columns:1fr;padding:20px}.m1-foto img{width:160px;margin:0 auto;display:block}}
+/* spoiler do módulo 1 */
+.spoiler{grid-column:1/-1}
+.spoiler video{width:100%;border-radius:18px;background:#000;display:block;aspect-ratio:16/9}
+.sp-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}.sp-head b{font-size:16px}
+.sp-head .lv-pill{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:var(--pink);color:#fff}
+.sp-ok{margin-top:10px;color:var(--yellow);font-weight:700;font-size:14px}
+.sp-lock{position:relative;border-radius:18px;overflow:hidden;min-height:340px}
+.sp-lock>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(6px) brightness(.45);transform:scale(1.08)}
+.sp-over{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:34px 22px}
+.sp-ic{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:rgba(233,103,9,.25);color:var(--orange)}.sp-ic svg{width:26px;height:26px}
+.sp-over .lv-pill{font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:var(--pink);color:#fff}
+.sp-over h3{font-size:clamp(19px,2.6vw,24px);max-width:620px}.sp-over p{color:var(--ink-2);font-size:14px}.sp-over p b{color:var(--yellow)}
+.sp-q{font-weight:800;color:var(--ink)!important;font-size:15.5px!important;margin-top:6px}
+.sp-ops{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(640px,100%)}
+.sp-ops button{padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(30,24,27,.85);color:var(--ink);font:700 14px var(--font-body);cursor:pointer}
+.sp-ops button:hover{border-color:var(--orange);background:rgba(233,103,9,.18)}
+@media (max-width:820px){.sp-ops{grid-template-columns:1fr}}

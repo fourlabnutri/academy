@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css?v=1107b"><script src="./config.js"></script><title>Início · FourLab Academy</title></head>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css?v=1107c"><script src="./config.js"></script><title>Início · FourLab Academy</title></head>
 <body><div class="shell"><div></div><main><section class="view home">
   <header class="home-top"><div><p class="kicker">FourLab Academy</p><h1 id="ola">Olá</h1><div id="selo"></div></div><span class="avatar" id="meAv"></span></header>
   <div id="hero"></div>
@@ -90,7 +90,25 @@ $("#modulo1").innerHTML = `<section class="m1">
     <ol class="m1-aulas">${(m1.length ? m1 : [{ aula_titulo: "Carboidratos nos esportes de endurance" }, { aula_titulo: "Carboidrato no intra-treino e planejamento de provas" }]).map((c, k) => `<li><i>Aula ${k + 1}</i><div><b>${esc(c.aula_titulo)}</b><span>${RES[k] || ""}</span></div><em>${c.liberada ? `<a href="aula?id=${c.aula_id}">Assistir</a>` : c.libera_em ? dia(c.libera_em) : ""}</em></li>`).join("")}</ol>
     <div class="bio"><p>${esc(P.bio)}</p><button class="bio-mais" type="button" aria-label="Ler mais"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
   </div>
+  <div class="spoiler" id="spoiler"></div>
 </section>`;
+const SPK = "m1-carboidrato";
+const OPCOES = ["Desconforto gastrointestinal", "Bater a meta de carboidrato por hora", "Escolher entre gel, bebida ou comida", "Ajustar a estratégia em treinos longos"];
+const lockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const mostraVideo = (novo) => {
+  $("#spoiler").innerHTML = `<div class="sp-head"><span class="lv-pill">Spoiler liberado</span><b>Um trecho da aula 1 com Paulo Mendes</b></div><video src="assets/spoiler/paulo-m1.mp4" poster="assets/spoiler/paulo-m1.jpg" controls playsinline ${novo ? "autoplay" : ""}></video>${novo ? '<p class="sp-ok">+10 pontos no ranking. Obrigado pela resposta!</p>' : ""}`;
+};
+const { data: jaResp } = await supabase.from("academy_pesquisa").select("resposta").eq("user_id", p.id).eq("chave", SPK).maybeSingle();
+if (jaResp) mostraVideo(false);
+else {
+  $("#spoiler").innerHTML = `<div class="sp-lock"><img src="assets/spoiler/paulo-m1.jpg" alt=""><div class="sp-over"><span class="sp-ic">${lockSvg}</span><span class="lv-pill">Spoiler exclusivo</span><h3>Assista um trecho da aula do Paulo antes de todo mundo</h3><p>Responda uma pergunta rápida para destravar e ganhe <b>+10 pontos</b>.</p><p class="sp-q">Qual o maior desafio dos seus atletas com carboidrato?</p><div class="sp-ops">${OPCOES.map((o) => `<button type="button" data-op="${esc(o)}">${esc(o)}</button>`).join("")}</div></div></div>`;
+  $("#spoiler").onclick = async (e) => {
+    const b = e.target.closest("[data-op]"); if (!b) return;
+    $("#spoiler").querySelectorAll("[data-op]").forEach((x) => (x.disabled = true));
+    await supabase.from("academy_pesquisa").insert({ user_id: p.id, chave: SPK, resposta: b.dataset.op });
+    $("#spoiler").onclick = null; mostraVideo(true);
+  };
+}
 
 /* 2. visita */
 if (p.visita_url) $("#visita").innerHTML = `<a class="cta-forum cta-visita" href="${esc(p.visita_url)}" target="_blank" rel="noopener"><div><h3>Quer receber uma visita de apresentação da FourLab?</h3><p>Reserve o melhor horário para conhecer os produtos e protocolos.</p></div><span>Reservar horário →</span></a>`;
