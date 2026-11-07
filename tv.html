@@ -10,7 +10,12 @@ html,body{height:100%;background:#141013;color:#f5f0ed;font-family:"Maven Pro",M
   background:linear-gradient(90deg,#1e181b,#271f23);border-top:.4vh solid;border-image:linear-gradient(90deg,#fdcc03,#e96709,#e3055f,#731b58) 1}
 .logo{height:5.5vh;filter:brightness(0) invert(1)}
 .cont{display:flex;align-items:center;gap:2.2vw;margin-left:auto}
-.selo{display:flex;align-items:center;gap:1.6vw;padding:.8vh 2vw;border-radius:999px;background:linear-gradient(90deg,#fdcc03,#e96709);color:#141013;box-shadow:0 0 4vh rgba(253,204,3,.25)}
+.selo{display:flex;align-items:center;gap:1.6vw;padding:.8vh 2vw;border-radius:999px;background:linear-gradient(110deg,#fdcc03,#e96709,#e3055f,#fdcc03,#ffe680,#e96709,#fdcc03);background-size:400% 100%;animation:liquido 6s linear infinite,brilho 3s ease-in-out infinite;color:#141013;box-shadow:0 0 4vh rgba(253,204,3,.25);position:relative;overflow:hidden}
+.selo::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-120%);animation:reflexo 3.5s ease-in-out infinite}
+.selo>*{position:relative;z-index:1}
+@keyframes liquido{to{background-position:400% 0}}
+@keyframes brilho{50%{box-shadow:0 0 6vh rgba(253,204,3,.55)}}
+@keyframes reflexo{60%,100%{transform:translateX(120%)}}
 .selo .n{font-size:5.2vh;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 .selo .t{white-space:nowrap;font-size:2vh;font-weight:800;letter-spacing:.35vh;text-transform:uppercase;line-height:1.25}
 .selo.pulo{animation:pulo 1.2s ease}
