@@ -1,0 +1,70 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css?v=1108a"><script src="../config.js"></script><title>Uso e engajamento · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy · Administração</span><span class="avatar" id="meAv"></span></div>
+<section class="view">
+  <div class="page-head"><div><h1>Uso e engajamento</h1><div class="sub">Como os prescritores usam o Academy: acessos, tempo, páginas e cliques.</div></div>
+    <select id="per" class="search" style="max-width:160px"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option></select></div>
+  <div class="stats3 adm-kpis" id="kpis"></div>
+  <div class="uso-grid">
+    <section class="card"><h2 class="adm-h">Pessoas ativas por dia</h2><div class="uso-bars" id="dias"></div></section>
+    <section class="card"><h2 class="adm-h">Horário de acesso</h2><div class="uso-bars" id="horas"></div><div class="muted" style="font-size:11px;display:flex;justify-content:space-between"><span>0h</span><span>12h</span><span>23h</span></div></section>
+    <section class="card uso-funil"><h2 class="adm-h">Jornada (desde o início)</h2><div id="funil"></div></section>
+  </div>
+  <div class="uso-grid">
+    <section class="card tbl"><h2 class="adm-h">Páginas</h2><table><thead><tr><th>Página</th><th>Visitas</th><th>Pessoas</th><th>Min</th></tr></thead><tbody id="pags"></tbody></table></section>
+    <section class="card tbl"><h2 class="adm-h">Onde mais clicam</h2><table><thead><tr><th>Clique</th><th>Página</th><th>Vezes</th><th>Pessoas</th></tr></thead><tbody id="clq"></tbody></table></section>
+  </div>
+  <section class="card tbl" style="margin-top:20px">
+    <div class="adm-tbh"><h2 class="adm-h">Por profissional</h2><input class="search" id="q" placeholder="Buscar nome ou e-mail"></div>
+    <table><thead><tr><th>Profissional</th><th>Último acesso</th><th>Dias</th><th>Sessões</th><th>Min</th><th>Aulas</th><th>Artigos</th><th>Fórum</th></tr></thead><tbody id="pes"></tbody></table>
+  </section>
+  <section class="card tbl" id="tl" hidden style="margin-top:20px">
+    <div class="adm-tbh"><h2 class="adm-h" id="tlH"></h2><button class="btn btn-ghost btn-sm" id="tlX">Fechar</button></div>
+    <table><thead><tr><th>Quando</th><th>Ação</th><th>Página</th><th>Detalhe</th></tr></thead><tbody id="tlB"></tbody></table>
+  </section>
+</section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell, isStaff } from "../assets/app.js";
+const p = await guard(); if (!p) throw 0;
+if (!isStaff(p)) { location.replace("../inicio"); throw 0; }
+shell(p, "admin/uso");
+const NOME = { inicio: "Início", live: "Aula inaugural", artigos: "Artigos", artigo: "Artigo", forum: "Fórum", topico: "Tópico", ranking: "Ranking", quiz: "Desafio", certificados: "Certificados", certificado: "Certificado", aula: "Aula", trilha: "Trilha" };
+const pg = (x) => NOME[x] || x;
+const dt = (s) => s ? new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";
+const rel = (s) => { if (!s) return "nunca"; const h = (Date.now() - new Date(s)) / 36e5; return h < 1 ? "agora há pouco" : h < 24 ? `há ${Math.floor(h)} h` : `há ${Math.floor(h / 24)} d`; };
+const barras = (arr, k, lbl) => { const m = Math.max(1, ...arr.map((x) => x[k])); return arr.map((x) => `<i style="height:${x[k] / m * 100}%" data-t="${esc(lbl(x))}"></i>`).join("") || '<p class="muted">Sem dados ainda.</p>'; };
+let pes = [];
+async function load() {
+  const { data: r, error } = await supabase.rpc("academy_uso_resumo", { d: +$("#per").value });
+  if (error) { $("#kpis").innerHTML = `<p class="muted">Rode o SQL 014 no Supabase. (${esc(error.message)})</p>`; return; }
+  const k = r.kpi;
+  $("#kpis").innerHTML = [
+    [k.hoje, "ativos hoje"], [k.semana, "ativos em 7 dias"], [`${k.periodo}/${k.base}`, "acessaram no período"],
+    [k.sessoes, "sessões"], [`${k.min_sessao} min`, "tempo médio por sessão"], [k.sessoes ? Math.round(k.mobile / k.sessoes * 100) + "%" : "—", "pelo celular"],
+  ].map(([v, l]) => `<div class="st"><b>${v}</b><span>${l}</span></div>`).join("");
+  $("#dias").innerHTML = barras(r.dias, "usuarios", (x) => `${new Date(x.dia + "T12:00").toLocaleDateString("pt-BR")}: ${x.usuarios} pessoas · ${x.min} min`);
+  const hs = Array.from({ length: 24 }, (_, h) => ({ h, n: (r.horas.find((x) => x.h === h) || {}).n || 0 }));
+  $("#horas").innerHTML = barras(hs, "n", (x) => `${x.h}h: ${x.n} sessões`);
+  const f = r.funil, base = Math.max(1, f.cadastrados);
+  $("#funil").innerHTML = [["Cadastrados", f.cadastrados], ["Acessaram o Academy", f.acessaram], ["Começaram uma aula", f.assistiram], ["Concluíram uma aula", f.concluiram], ["Leram um artigo", f.leram], ["Participaram do fórum", f.forum]]
+    .map(([l, n]) => `<div class="adm-row"><span>${l}</span><i style="width:${n / base * 100}%"></i><b>${n}</b></div>`).join("");
+  $("#pags").innerHTML = r.paginas.map((x) => `<tr><td><b>${esc(pg(x.pagina))}</b></td><td class="num">${x.views}</td><td class="num">${x.usuarios}</td><td class="num">${x.min}</td></tr>`).join("") || '<tr><td colspan="4" class="empty">Sem dados ainda.</td></tr>';
+  $("#clq").innerHTML = r.cliques.map((x) => `<tr><td>${esc(x.alvo)}</td><td>${esc(pg(x.pagina))}</td><td class="num">${x.n}</td><td class="num">${x.usuarios}</td></tr>`).join("") || '<tr><td colspan="4" class="empty">Sem dados ainda.</td></tr>';
+  pes = r.pessoas; render();
+}
+function render() {
+  const q = $("#q").value.trim().toLowerCase();
+  $("#pes").innerHTML = pes.filter((x) => !q || (x.nome + " " + x.email).toLowerCase().includes(q)).map((x) => `<tr class="click" data-id="${x.id}" data-n="${esc(x.nome)}"><td><b>${x.fundador_num ? `★${x.fundador_num} ` : ""}${esc(x.nome)}</b><div class="muted" style="font-size:12px">${esc(x.email)}</div></td>
+    <td>${rel(x.ultimo)}</td><td class="num">${x.dias}</td><td class="num">${x.sessoes}</td><td class="num">${x.min}</td><td class="num">${x.aulas}</td><td class="num">${x.artigos}</td><td class="num">${x.posts}</td></tr>`).join("") || '<tr><td colspan="8" class="empty">Ninguém.</td></tr>';
+}
+$("#per").onchange = load;
+$("#q").oninput = render;
+$("#tlX").onclick = () => { $("#tl").hidden = true; };
+$("#pes").onclick = async (e) => {
+  const tr = e.target.closest("tr[data-id]"); if (!tr) return;
+  $("#tl").hidden = false; $("#tlH").textContent = "Histórico · " + tr.dataset.n; $("#tlB").innerHTML = '<tr><td colspan="4" class="empty">Carregando…</td></tr>';
+  $("#tl").scrollIntoView({ behavior: "smooth" });
+  const { data } = await supabase.from("academy_uso").select("tipo,pagina,alvo,seg,disp,created_at").eq("user_id", tr.dataset.id).neq("tipo", "tempo").order("created_at", { ascending: false }).limit(300);
+  $("#tlB").innerHTML = (data || []).map((x) => `<tr><td>${dt(x.created_at)}</td><td>${x.tipo === "view" ? "Abriu" : "Clicou"}</td><td>${esc(pg(x.pagina))}</td><td>${esc(x.alvo || "")}${x.tipo === "view" && x.disp === "mobile" ? ' <span class="muted">· celular</span>' : ""}</td></tr>`).join("") || '<tr><td colspan="4" class="empty">Sem registros ainda.</td></tr>';
+};
+load();
+</script></body></html>
