@@ -565,7 +565,7 @@ body{font-size:15px}
 .sp-ops button:hover{border-color:var(--orange);background:rgba(233,103,9,.18)}
 @media (max-width:820px){.sp-ops{grid-template-columns:1fr}}
 /* flyout admin */
-.adm-fly{position:fixed;top:14px;left:98px;bottom:14px;width:240px;z-index:199;background:#1b1320;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:20px 12px;display:flex;flex-direction:column;gap:4px;box-shadow:0 20px 40px rgba(0,0,0,.45)}
+.adm-fly{position:fixed;top:14px;left:266px;bottom:14px;width:240px;z-index:201;background:#1b1320;border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:20px 12px;display:flex;flex-direction:column;gap:4px;box-shadow:0 20px 40px rgba(0,0,0,.45)}
 .adm-fly[hidden]{display:none}
 .adm-fly-h{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;font-weight:800;color:rgba(255,255,255,.5);padding:0 12px 10px}
 .adm-fly-a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:14px;color:rgba(255,255,255,.8);font-weight:700;font-size:13px;text-decoration:none}
