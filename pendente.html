@@ -15,24 +15,9 @@ else {
     <div><span class="pill ${st[0]}">${st[1]}</span></div>
     <h2 style="font-size:20px">Olá, ${esc((p.nome || "").split(" ")[0])}</h2>
     ${p.status === "recusado" ? `<p class="muted">${esc(p.motivo_recusa || "Não conseguimos validar seu registro.")} Fale com a equipe FourLab.</p>`
-      : `<p class="muted">Estamos conferindo seu registro no conselho. Você recebe um e-mail quando o acesso for liberado.</p>
-      <div class="field"><label for="doc">Carteirinha do conselho (foto ou PDF)</label><input id="doc" type="file" accept="image/*,.pdf"></div>
-      <p class="muted" id="docst" style="font-size:12.5px">${p.comprovante_path ? "Comprovante já enviado. Pode enviar outro para substituir." : "Ainda falta enviar o comprovante."}</p>
-      <button class="btn btn-primary" id="up">Enviar comprovante</button>`}
+      : `<p class="muted">Seu acesso ainda não está liberado. Fale com a equipe FourLab.</p>`}
     <div class="msg" id="msg"></div>
     <button class="btn btn-ghost btn-sm" id="sair" style="align-self:flex-start">Sair</button>`;
   $("#sair").onclick = async () => { await supabase.auth.signOut(); location.href = "login"; };
-  const up = $("#up");
-  if (up) up.onclick = async () => {
-    const f = $("#doc").files[0];
-    if (!f) return showMsg($("#msg"), "Escolha o arquivo primeiro.");
-    if (f.size > 10e6) return showMsg($("#msg"), "Arquivo acima de 10 MB.");
-    const path = `${p.user.id}/carteirinha-${Date.now()}.${f.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("academy-comprovantes").upload(path, f);
-    if (error) return showMsg($("#msg"), "Falha no envio: " + error.message);
-    await supabase.from("academy_profiles").update({ comprovante_path: path }).eq("id", p.user.id);
-    showMsg($("#msg"), "Comprovante enviado. Agora é só aguardar a análise.", "ok");
-    $("#docst").textContent = "Comprovante enviado.";
-  };
 }
 </script></body></html>

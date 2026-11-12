@@ -79,7 +79,7 @@ export function shell(p, active) {
   const adm = [
     ["comercial", "admin"].includes(p.role) && ["admin/painel", "Painel", "rank"],
     STAFF.includes(p.role) && ["admin/uso", "Uso e engajamento", "pulse"],
-    ["comercial", "admin"].includes(p.role) && ["admin/aprovacoes", "Aprovações", "check"],
+    ["comercial", "admin"].includes(p.role) && ["admin/aprovacoes", "Acessos", "check"],
     ["editor", "revisor", "admin"].includes(p.role) && ["admin/conteudo", "Conteúdo", "edit"],
     STAFF.includes(p.role) && ["admin/live", "Lançamento e módulos", "play"],
   ].filter(Boolean);
