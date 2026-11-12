@@ -1,16 +1,39 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css?v=1108b"><script src="./config.js"></script><title>Nova senha · FourLab Academy</title></head>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css?v=1108b"><script src="./config.js"></script><title>Criar senha · FourLab Academy</title></head>
 <body><div class="center-page"><form class="card" id="f" style="max-width:420px;width:100%;display:flex;flex-direction:column;gap:14px">
-  <h2 style="font-size:20px">Criar nova senha</h2>
-  <div class="field"><label for="senha">Nova senha (mín. 8)</label><input id="senha" type="password" minlength="8" required autocomplete="new-password"></div>
+  <img src="assets/logo-academy.png" alt="FourLab Academy" style="height:40px;align-self:flex-start">
+  <h2 style="font-size:20px" id="tit">Criar sua senha</h2>
+  <p class="muted" id="sub" style="font-size:13.5px">Validando seu link…</p>
+  <div class="field"><label for="senha">Senha (mínimo 8 caracteres)</label><input id="senha" type="password" minlength="8" required autocomplete="new-password"></div>
+  <div class="field"><label for="senha2">Repita a senha</label><input id="senha2" type="password" minlength="8" required autocomplete="new-password"></div>
+  <label style="display:flex;gap:8px;align-items:center;font-size:13px" class="muted"><input type="checkbox" id="ver"> Mostrar senha</label>
   <div class="msg" id="msg"></div>
-  <button class="btn btn-primary" type="submit">Salvar senha</button>
+  <button class="btn btn-primary" type="submit" id="btn" disabled>Salvar e entrar</button>
 </form></div>
 <script type="module">
-import { supabase, $, showMsg } from "./assets/app.js";
+import { supabase, $, showMsg, getProfile } from "./assets/app.js";
+const erroLink = new URLSearchParams(location.hash.slice(1)).get("error_description") || new URLSearchParams(location.search).get("error_description");
+async function pronto() {
+  const p = await getProfile();
+  if (!p) return false;
+  const n = (p.nome || "").split(" ")[0];
+  $("#tit").textContent = n ? `Bem-vindo(a), ${n}` : "Criar sua senha";
+  $("#sub").textContent = `Defina a senha para entrar no Academy com ${p.user.email}.`;
+  $("#btn").disabled = false;
+  return true;
+}
+if (erroLink) $("#sub").textContent = "Este link expirou ou já foi usado. Peça um novo em Login → Esqueci a senha.";
+else if (!(await pronto())) {
+  supabase.auth.onAuthStateChange(() => pronto());
+  setTimeout(() => { if ($("#btn").disabled) $("#sub").innerHTML = 'Não conseguimos validar o link. Peça um novo em <a href="login">Login → Esqueci a senha</a>.'; }, 5000);
+}
+$("#ver").onchange = (e) => { $("#senha").type = $("#senha2").type = e.target.checked ? "text" : "password"; };
 $("#f").addEventListener("submit", async (e) => {
   e.preventDefault();
+  if ($("#senha").value !== $("#senha2").value) return showMsg($("#msg"), "As senhas não são iguais.");
+  $("#btn").disabled = true;
   const { error } = await supabase.auth.updateUser({ password: $("#senha").value });
-  if (error) return showMsg($("#msg"), "O link expirou. Peça outro em Esqueci a senha.");
-  showMsg($("#msg"), "Senha salva. Redirecionando…", "ok"); setTimeout(() => location.href = "login", 1200);
+  if (error) { $("#btn").disabled = false; return showMsg($("#msg"), error.message.includes("different") ? "Use uma senha diferente da anterior." : "O link expirou. Peça outro em Esqueci a senha."); }
+  showMsg($("#msg"), "Senha salva. Entrando…", "ok");
+  setTimeout(() => location.href = "inicio", 900);
 });
 </script></body></html>
