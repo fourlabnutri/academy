@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css?v=1112a"><script src="../config.js"></script><title>Acessos · FourLab Academy</title></head>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css?v=1112b"><script src="../config.js"></script><title>Acessos · FourLab Academy</title></head>
 <body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy · Administração</span><span class="avatar" id="meAv"></span></div>
 <section class="view">
   <div class="page-head"><div><h1>Acessos</h1><div class="sub">Equipe interna e prescritores. Cadastros de prescritores entram liberados.</div></div>
@@ -18,6 +18,20 @@
   </section>
   <div class="card tbl"><table><thead id="th"></thead><tbody id="rows"></tbody></table></div>
 </section></main></div>
+<dialog id="dlg" class="card" style="max-width:520px;width:calc(100% - 32px);color:inherit;border:1px solid var(--line)">
+  <form id="fEd" method="dialog" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <h2 class="adm-h" style="grid-column:1/-1">Editar cadastro</h2>
+    <div class="field" style="grid-column:1/-1"><label for="eNome">Nome</label><input id="eNome" required></div>
+    <div class="field" style="grid-column:1/-1"><label for="eEmail">E-mail (login)</label><input id="eEmail" type="email" required></div>
+    <div class="field"><label for="eProf">Profissão</label><input id="eProf"></div>
+    <div class="field"><label for="eReg">Conselho e número</label><input id="eReg"></div>
+    <div class="field"><label for="eCid">Cidade</label><input id="eCid"></div>
+    <div class="field"><label for="eUf">UF</label><input id="eUf" maxlength="2"></div>
+    <div class="field" style="grid-column:1/-1"><label for="eSenha">Nova senha (deixe vazio para manter)</label><input id="eSenha" type="password" minlength="8" autocomplete="new-password"></div>
+    <div class="msg" id="eMsg" style="grid-column:1/-1"></div>
+    <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" value="salvar">Salvar</button><button type="button" class="btn btn-ghost btn-sm" id="eX">Fechar</button><button type="button" class="btn btn-danger btn-sm" id="eDel" style="margin-left:auto">Excluir conta</button></div>
+  </form>
+</dialog>
 <script type="module">
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { supabase, $, $$, esc, guard, shell, fmtDate, initials, showMsg } from "../assets/app.js";
@@ -37,16 +51,16 @@ async function load() {
     $("#rows").innerHTML = rows.map((r, i) => `<tr><td>${who(r)}</td>
       <td>${souAdmin && r.id !== p.id ? `<select data-role="${i}">${Object.entries(PAPEL).map(([k, l]) => `<option value="${k}" ${k === r.role ? "selected" : ""}>${l}</option>`).join("")}</select>` : PAPEL[r.role]}</td>
       <td class="muted">${fmtDate(r.created_at)}</td>
-      <td style="text-align:right">${souAdmin && r.id !== p.id ? `<button class="btn btn-danger btn-sm" data-st="${i}" data-v="${r.status === "suspenso" ? "aprovado" : "suspenso"}">${r.status === "suspenso" ? "Reativar" : "Bloquear"}</button>` : ""}</td></tr>`).join("") || '<tr><td colspan="4" class="empty">Ninguém.</td></tr>';
+      <td style="text-align:right;white-space:nowrap">${souAdmin ? `<button class="btn btn-ghost btn-sm" data-ed="${i}">Editar</button> ` : ""}${souAdmin && r.id !== p.id ? `<button class="btn btn-danger btn-sm" data-st="${i}" data-v="${r.status === "suspenso" ? "aprovado" : "suspenso"}">${r.status === "suspenso" ? "Reativar" : "Bloquear"}</button>` : ""}</td></tr>`).join("") || '<tr><td colspan="4" class="empty">Ninguém.</td></tr>';
     if (souAdmin) {
       const { data: cv } = await supabase.from("academy_convites").select("*");
-      $("#rows").insertAdjacentHTML("beforeend", (cv || []).map((c) => `<tr><td>${who(c)}</td><td>${PAPEL[c.role]}</td><td><span class="pill warn">Aguardando criar senha</span></td><td style="text-align:right"><button class="btn btn-ghost btn-sm" data-cancel="${esc(c.email)}">Cancelar</button></td></tr>`).join(""));
+      $("#rows").insertAdjacentHTML("beforeend", (cv || []).map((c) => `<tr><td>${who(c)}</td><td>${PAPEL[c.role]}</td><td><span class="pill warn">Conta não criada</span></td><td style="text-align:right"><button class="btn btn-ghost btn-sm" data-cancel="${esc(c.email)}">Cancelar</button></td></tr>`).join(""));
     }
   } else {
     $("#th").innerHTML = "<tr><th>Prescritor</th><th>Registro</th><th>Cidade</th><th>Cadastro</th><th></th></tr>";
     $("#rows").innerHTML = rows.map((r, i) => `<tr><td>${who(r)}</td>
       <td class="num">${esc([r.conselho, r.registro].filter(Boolean).join(" "))}<div class="muted" style="font-size:12px">${esc(r.profissao || "")}</div></td><td>${esc([r.cidade, r.uf].filter(Boolean).join(" / "))}</td><td class="muted">${fmtDate(r.created_at)}</td>
-      <td style="text-align:right"><button class="btn ${aba === "suspenso" ? "btn-primary" : "btn-danger"} btn-sm" data-st="${i}" data-v="${aba === "suspenso" ? "aprovado" : "suspenso"}">${aba === "suspenso" ? "Reativar" : "Suspender"}</button></td></tr>`).join("") || '<tr><td colspan="5" class="empty">Ninguém.</td></tr>';
+      <td style="text-align:right;white-space:nowrap">${souAdmin ? `<button class="btn btn-ghost btn-sm" data-ed="${i}">Editar</button> ` : ""}<button class="btn ${aba === "suspenso" ? "btn-primary" : "btn-danger"} btn-sm" data-st="${i}" data-v="${aba === "suspenso" ? "aprovado" : "suspenso"}">${aba === "suspenso" ? "Reativar" : "Suspender"}</button></td></tr>`).join("") || '<tr><td colspan="5" class="empty">Ninguém.</td></tr>';
   }
 }
 $("#seg").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; aba = b.dataset.t; $$("#seg button").forEach((x) => x.classList.toggle("on", x === b)); $("#novo").hidden = !souAdmin || aba !== "equipe"; load(); };
@@ -58,6 +72,7 @@ $("#rows").addEventListener("change", async (e) => {
 });
 $("#rows").addEventListener("click", async (e) => {
   const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.ed) return abrir(rows[t.dataset.ed]);
   if (t.dataset.cancel) { await supabase.from("academy_convites").delete().eq("email", t.dataset.cancel); return load(); }
   if (!confirm(t.textContent.trim() + "?")) return;
   t.disabled = true;
@@ -92,5 +107,32 @@ $("#fNovo").onsubmit = async (e) => {
   fim(`Acesso criado para ${nome.split(" ")[0]}. Envie o login abaixo.`, "ok");
 };
 $("#gera").onclick = () => { const c = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"; $("#nSenha").value = "Fl" + Array.from(crypto.getRandomValues(new Uint32Array(8)), (x) => c[x % c.length]).join("") + "!"; $("#nSenha").type = "text"; $("#nSenha").dispatchEvent(new Event("input")); };
+let atual = null;
+function abrir(r) {
+  atual = r;
+  $("#eNome").value = r.nome || ""; $("#eEmail").value = r.email || ""; $("#eProf").value = r.profissao || "";
+  $("#eReg").value = [r.conselho, r.registro].filter(Boolean).join(" "); $("#eCid").value = r.cidade || ""; $("#eUf").value = r.uf || ""; $("#eSenha").value = "";
+  $("#eMsg").className = "msg"; $("#eDel").hidden = r.id === p.id;
+  $("#dlg").showModal();
+}
+$("#eX").onclick = () => $("#dlg").close();
+$("#fEd").onsubmit = async (e) => {
+  e.preventDefault();
+  const m = $("#eMsg"), [conselho, ...num] = $("#eReg").value.trim().split(/\s+/);
+  const { error } = await supabase.from("academy_profiles").update({ nome: $("#eNome").value.trim(), profissao: $("#eProf").value.trim() || null, conselho: conselho || null, registro: num.join(" ") || null, cidade: $("#eCid").value.trim() || null, uf: $("#eUf").value.trim().toUpperCase() || null }).eq("id", atual.id);
+  if (error) return showMsg(m, "Erro: " + error.message);
+  const email = $("#eEmail").value.trim().toLowerCase();
+  if (email !== atual.email) { const { error: x } = await supabase.rpc("academy_admin_email", { uid: atual.id, novo: email }); if (x) return showMsg(m, "Erro no e-mail: " + x.message); }
+  const senha = $("#eSenha").value;
+  if (senha) { const { error: x } = await supabase.rpc("academy_admin_senha", { uid: atual.id, senha }); if (x) return showMsg(m, "Erro na senha: " + x.message); }
+  showMsg(m, senha ? `Salvo. Nova senha de ${atual.nome.split(" ")[0]}: ${senha}` : "Salvo.", "ok");
+  load();
+};
+$("#eDel").onclick = async () => {
+  if (prompt(`Excluir a conta de ${atual.nome} apaga login, progresso e pontos. Não tem volta.\nDigite EXCLUIR para confirmar:`) !== "EXCLUIR") return;
+  const { error } = await supabase.rpc("academy_admin_excluir", { uid: atual.id });
+  if (error) return showMsg($("#eMsg"), "Erro: " + error.message);
+  $("#dlg").close(); load();
+};
 load();
 </script></body></html>

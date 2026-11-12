@@ -1,0 +1,49 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css?v=1112b"><script src="./config.js"></script><title>Minha conta · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy</span><span class="avatar" id="meAv"></span></div>
+<section class="view" style="max-width:720px">
+  <div class="page-head"><div><h1>Minha conta</h1><div class="sub" id="sub"></div></div></div>
+  <section class="card">
+    <h2 class="adm-h">Dados do cadastro</h2>
+    <form id="fDados" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field" style="grid-column:1/-1"><label for="nome">Nome</label><input id="nome" required></div>
+      <div class="field"><label for="prof">Profissão</label><input id="prof"></div>
+      <div class="field"><label for="reg">Conselho e número</label><input id="reg"></div>
+      <div class="field"><label for="cid">Cidade</label><input id="cid"></div>
+      <div class="field"><label for="uf">UF</label><input id="uf" maxlength="2"></div>
+      <div class="field" style="grid-column:1/-1"><label for="mod">Modalidade em que atua</label><input id="mod"></div>
+      <div class="msg" id="m1" style="grid-column:1/-1"></div>
+      <div style="grid-column:1/-1"><button class="btn btn-primary btn-sm">Salvar dados</button></div>
+    </form>
+  </section>
+  <section class="card" style="margin-top:20px">
+    <h2 class="adm-h">Alterar senha</h2>
+    <form id="fSenha" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label for="s1">Nova senha (mín. 8)</label><input id="s1" type="password" minlength="8" required autocomplete="new-password"></div>
+      <div class="field"><label for="s2">Repita a nova senha</label><input id="s2" type="password" minlength="8" required autocomplete="new-password"></div>
+      <div class="msg" id="m2" style="grid-column:1/-1"></div>
+      <div style="grid-column:1/-1"><button class="btn btn-primary btn-sm">Alterar senha</button></div>
+    </form>
+    <p class="muted" style="font-size:12.5px;margin-top:10px">Para trocar o e-mail de login, fale com a equipe FourLab.</p>
+  </section>
+</section></main></div>
+<script type="module">
+import { supabase, $, guard, shell, showMsg } from "./assets/app.js";
+const p = await guard(); if (!p) throw 0;
+shell(p, "conta");
+$("#sub").textContent = "Login: " + p.email;
+$("#nome").value = p.nome || ""; $("#prof").value = p.profissao || ""; $("#reg").value = [p.conselho, p.registro].filter(Boolean).join(" ");
+$("#cid").value = p.cidade || ""; $("#uf").value = p.uf || ""; $("#mod").value = p.modalidade || "";
+$("#fDados").onsubmit = async (e) => {
+  e.preventDefault();
+  const [conselho, ...num] = $("#reg").value.trim().split(/\s+/);
+  const { error } = await supabase.from("academy_profiles").update({ nome: $("#nome").value.trim(), profissao: $("#prof").value.trim() || null, conselho: conselho || null, registro: num.join(" ") || null, cidade: $("#cid").value.trim() || null, uf: $("#uf").value.trim().toUpperCase() || null, modalidade: $("#mod").value.trim() || null }).eq("id", p.id);
+  showMsg($("#m1"), error ? "Não foi possível salvar: " + error.message : "Dados salvos.", error ? "err" : "ok");
+};
+$("#fSenha").onsubmit = async (e) => {
+  e.preventDefault();
+  if ($("#s1").value !== $("#s2").value) return showMsg($("#m2"), "As senhas não são iguais.");
+  const { error } = await supabase.auth.updateUser({ password: $("#s1").value });
+  if (error) return showMsg($("#m2"), /different/i.test(error.message) ? "Use uma senha diferente da atual." : /reauth|recent/i.test(error.message) ? "Por segurança, saia e entre de novo e tente outra vez." : "Erro: " + error.message);
+  e.target.reset(); showMsg($("#m2"), "Senha alterada.", "ok");
+};
+</script></body></html>

@@ -35,6 +35,7 @@ const I = {
   rank: '<path d="M5 21v-7h4v7M10 21V9h4v12M15 21v-5h4v5"/>',
   gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>',
   pulse: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
   arrow: '<path d="M7 17 17 7M8 7h9v9"/>',
 };
 export const svg = (k, s = 18) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
@@ -74,6 +75,7 @@ export function shell(p, active) {
     ["ranking", "Ranking", "rank"],
     ["quiz", "Desafio", "check"],
     ["certificados", "Certificados", "award"],
+    ["conta", "Minha conta", "user"],
   ].filter((i) => !i[1] || i[0] === "inicio" || STAFF.includes(p.role) || p.mod?.[i[0]] !== false);
   if (!STAFF.includes(p.role) && p.mod?.[active] === false) { location.replace(root + "inicio"); return; }
   const adm = [
