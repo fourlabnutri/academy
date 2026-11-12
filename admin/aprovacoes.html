@@ -1,4 +1,4 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css?v=1108b"><script src="../config.js"></script><title>Acessos · FourLab Academy</title></head>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css?v=1112a"><script src="../config.js"></script><title>Acessos · FourLab Academy</title></head>
 <body><div class="shell"><div></div><main><div class="topbar"><span class="crumb">FourLab Academy · Administração</span><span class="avatar" id="meAv"></span></div>
 <section class="view">
   <div class="page-head"><div><h1>Acessos</h1><div class="sub">Equipe interna e prescritores. Cadastros de prescritores entram liberados.</div></div>
@@ -8,7 +8,7 @@
     <form id="fNovo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end">
       <div class="field"><label for="nNome">Nome</label><input id="nNome" required></div>
       <div class="field"><label for="nEmail">E-mail</label><input id="nEmail" type="email" required></div>
-      <div class="field"><label for="nSenha">Senha</label><div style="display:flex;gap:6px"><input id="nSenha" required minlength="8" style="flex:1"><button type="button" class="btn btn-ghost btn-sm" id="gera">Gerar</button></div></div>
+      <div class="field"><label for="nSenha">Senha</label><div style="display:flex;gap:6px"><input id="nSenha" type="password" required minlength="8" autocomplete="new-password"><button type="button" class="btn btn-ghost btn-sm" id="gera">Gerar</button></div></div>
       <div class="field"><label for="nRole">Papel</label><select id="nRole"><option value="admin">Administrador (tudo)</option><option value="comercial">Comercial (acessos e painel)</option><option value="editor">Editor (conteúdo)</option><option value="revisor">Revisor (conteúdo)</option></select></div>
       <button class="btn btn-primary">Criar acesso</button>
     </form>
@@ -91,6 +91,6 @@ $("#fNovo").onsubmit = async (e) => {
   e.target.reset(); load();
   fim(`Acesso criado para ${nome.split(" ")[0]}. Envie o login abaixo.`, "ok");
 };
-$("#gera").onclick = () => { const c = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"; $("#nSenha").value = "Fl" + Array.from(crypto.getRandomValues(new Uint32Array(8)), (x) => c[x % c.length]).join("") + "!"; };
+$("#gera").onclick = () => { const c = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789"; $("#nSenha").value = "Fl" + Array.from(crypto.getRandomValues(new Uint32Array(8)), (x) => c[x % c.length]).join("") + "!"; $("#nSenha").type = "text"; $("#nSenha").dispatchEvent(new Event("input")); };
 load();
 </script></body></html>

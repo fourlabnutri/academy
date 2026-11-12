@@ -578,3 +578,7 @@ body{font-size:15px}
 .uso-bars i:hover::after{content:attr(data-t);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#000;color:#fff;font-size:11px;padding:3px 6px;border-radius:6px;white-space:nowrap;font-style:normal}
 .uso-funil .adm-row span{min-width:150px}
 .tbl tr.click{cursor:pointer}
+.pw-wrap{position:relative;display:block;flex:1}
+.pw-wrap input{width:100%;padding-right:44px}
+.pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--ink-2);cursor:pointer;padding:6px;display:flex;border-radius:8px}
+.pw-eye:hover{color:#fff}

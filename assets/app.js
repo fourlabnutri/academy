@@ -139,3 +139,20 @@ function track(p) {
   addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flush(); });
   addEventListener("pagehide", flush);
 }
+
+/* ---------- olho para mostrar senha ---------- */
+const OLHO = '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>';
+const OLHO_X = OLHO + '<path d="M4 4l16 16"/>';
+function olhos() {
+  document.querySelectorAll('input[type=password]:not([data-olho]), input[data-senha]:not([data-olho])').forEach((inp) => {
+    inp.dataset.olho = "1";
+    const w = document.createElement("span"); w.className = "pw-wrap";
+    inp.replaceWith(w); w.appendChild(inp);
+    const b = document.createElement("button"); b.type = "button"; b.className = "pw-eye"; b.setAttribute("aria-label", "Mostrar senha");
+    const set = () => { const on = inp.type === "text"; b.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${on ? OLHO_X : OLHO}</svg>`; b.setAttribute("aria-label", on ? "Esconder senha" : "Mostrar senha"); };
+    b.onclick = () => { inp.type = inp.type === "password" ? "text" : "password"; set(); };
+    set(); w.appendChild(b);
+  });
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", olhos); else olhos();
+new MutationObserver(olhos).observe(document.documentElement, { childList: true, subtree: true });
