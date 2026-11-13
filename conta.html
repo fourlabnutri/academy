@@ -10,6 +10,13 @@
       <div class="field"><label for="reg">Conselho e número</label><input id="reg"></div>
       <div class="field"><label for="cid">Cidade</label><input id="cid"></div>
       <div class="field"><label for="uf">UF</label><input id="uf" maxlength="2"></div>
+      <div style="grid-column:1/-1;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--orange);margin-top:6px">Endereço para envio</div>
+      <div class="field"><label for="atel">Celular (WhatsApp)</label><input id="atel" type="tel"></div>
+      <div class="field"><label for="acep">CEP</label><input id="acep" maxlength="9" inputmode="numeric"></div>
+      <div class="field" style="grid-column:1/-1"><label for="arua">Rua / Avenida</label><input id="arua"></div>
+      <div class="field"><label for="anum">Número</label><input id="anum"></div>
+      <div class="field"><label for="acompl">Complemento</label><input id="acompl"></div>
+      <div class="field" style="grid-column:1/-1"><label for="abai">Bairro</label><input id="abai"></div>
       <div class="field" style="grid-column:1/-1"><label for="mod">Modalidade em que atua</label><input id="mod"></div>
       <div class="msg" id="m1" style="grid-column:1/-1"></div>
       <div style="grid-column:1/-1"><button class="btn btn-primary btn-sm">Salvar dados</button></div>
@@ -33,10 +40,11 @@ shell(p, "conta");
 $("#sub").textContent = "Login: " + p.email;
 $("#nome").value = p.nome || ""; $("#prof").value = p.profissao || ""; $("#reg").value = [p.conselho, p.registro].filter(Boolean).join(" ");
 $("#cid").value = p.cidade || ""; $("#uf").value = p.uf || ""; $("#mod").value = p.modalidade || "";
+$("#atel").value = p.telefone || ""; $("#acep").value = p.cep || ""; $("#arua").value = p.logradouro || ""; $("#anum").value = p.numero || ""; $("#acompl").value = p.complemento || ""; $("#abai").value = p.bairro || "";
 $("#fDados").onsubmit = async (e) => {
   e.preventDefault();
   const [conselho, ...num] = $("#reg").value.trim().split(/\s+/);
-  const { error } = await supabase.from("academy_profiles").update({ nome: $("#nome").value.trim(), profissao: $("#prof").value.trim() || null, conselho: conselho || null, registro: num.join(" ") || null, cidade: $("#cid").value.trim() || null, uf: $("#uf").value.trim().toUpperCase() || null, modalidade: $("#mod").value.trim() || null }).eq("id", p.id);
+  const { error } = await supabase.from("academy_profiles").update({ telefone: $("#atel").value.trim() || null, cep: $("#acep").value.trim() || null, logradouro: $("#arua").value.trim() || null, numero: $("#anum").value.trim() || null, complemento: $("#acompl").value.trim() || null, bairro: $("#abai").value.trim() || null, nome: $("#nome").value.trim(), profissao: $("#prof").value.trim() || null, conselho: conselho || null, registro: num.join(" ") || null, cidade: $("#cid").value.trim() || null, uf: $("#uf").value.trim().toUpperCase() || null, modalidade: $("#mod").value.trim() || null }).eq("id", p.id);
   showMsg($("#m1"), error ? "Não foi possível salvar: " + error.message : "Dados salvos.", error ? "err" : "ok");
 };
 $("#fSenha").onsubmit = async (e) => {

@@ -18,8 +18,21 @@
       <div class="field"><label for="registro">Conselho e número</label><input id="registro" placeholder="CRN-3 45821" required></div>
     </div>
     <div class="row2">
-      <div class="field"><label for="cidade">Cidade / UF</label><input id="cidade" placeholder="Campinas / SP" required></div>
+      <div class="field"><label for="tel">Celular (WhatsApp)</label><input id="tel" type="tel" placeholder="(19) 99999-9999" required autocomplete="tel"></div>
       <div class="field"><label for="modalidade">Modalidade que mais atende</label><select id="modalidade"><option>MTB</option><option>Corrida</option><option>Triathlon</option><option>Trail</option><option>Outra</option></select></div>
+    </div>
+    <div class="cap-end" style="font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--orange);margin-top:4px">Endereço para envio</div>
+    <div class="row2">
+      <div class="field"><label for="cep">CEP</label><input id="cep" inputmode="numeric" placeholder="00000-000" required maxlength="9" autocomplete="postal-code"></div>
+      <div class="field"><label for="rua">Rua / Avenida</label><input id="rua" required autocomplete="address-line1"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="numero">Número</label><input id="numero" required></div>
+      <div class="field"><label for="compl">Complemento</label><input id="compl" placeholder="Apto, sala, bloco (opcional)"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label for="bairro">Bairro</label><input id="bairro" required></div>
+      <div class="field"><label for="cidade">Cidade / UF</label><input id="cidade" placeholder="Campinas / SP" required></div>
     </div>
     <div class="note" id="nota">Seu acesso é liberado na hora.</div>
     <div class="msg" id="msg"></div>
@@ -29,6 +42,17 @@
 <script type="module">
 import { supabase, $, showMsg } from "./assets/app.js";
 if (Date.now() < new Date("2026-11-08T00:00:00-03:00")) $("#nota").textContent = "Acesso liberado na hora. Cadastre-se até sábado (07/11) e receba o selo de membro fundador.";
+$("#cep").addEventListener("input", async (e) => {
+  const d = e.target.value.replace(/\D/g, "").slice(0, 8);
+  e.target.value = d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
+  if (d.length !== 8) return;
+  try {
+    const r = await (await fetch(`https://viacep.com.br/ws/${d}/json/`)).json();
+    if (r.erro) return;
+    $("#rua").value = r.logradouro || $("#rua").value; $("#bairro").value = r.bairro || $("#bairro").value;
+    $("#cidade").value = `${r.localidade} / ${r.uf}`; $("#numero").focus();
+  } catch {}
+});
 $("#f").addEventListener("submit", async (e) => {
   e.preventDefault();
   const b = $("#go"); b.disabled = true;
@@ -37,7 +61,7 @@ $("#f").addEventListener("submit", async (e) => {
   const { data, error } = await supabase.auth.signUp({
     email: $("#email").value.trim(), password: $("#senha").value,
     options: { emailRedirectTo: location.origin + location.pathname.replace(/index\.html$|$/, "pendente"),
-      data: { app: "academy", origem: new URLSearchParams(location.search).get("evento") === "ea" ? "endurance-applied" : null, nome: $("#nome").value.trim(), profissao: $("#profissao").value, conselho, registro: num.join(" "), cidade, uf: uf || null, modalidade: $("#modalidade").value } },
+      data: { app: "academy", origem: new URLSearchParams(location.search).get("evento") === "ea" ? "endurance-applied" : null, nome: $("#nome").value.trim(), profissao: $("#profissao").value, conselho, registro: num.join(" "), cidade, uf: uf || null, modalidade: $("#modalidade").value, telefone: $("#tel").value.trim(), cep: $("#cep").value.trim(), logradouro: $("#rua").value.trim(), numero: $("#numero").value.trim(), complemento: $("#compl").value.trim() || null, bairro: $("#bairro").value.trim() } },
   });
   b.disabled = false;
   if (error) return showMsg($("#msg"), error.message.includes("registered") ? "Esse e-mail já tem cadastro. Use Entrar." : "Não foi possível cadastrar: " + error.message);

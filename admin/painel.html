@@ -33,7 +33,7 @@ const conta = (arr, k) => { const o = {}; arr.forEach((x) => { const v = x[k] ||
 const barras = (pares) => { const max = Math.max(1, ...pares.map((x) => x[1])); return pares.map(([k, n]) => `<div class="adm-row"><span>${esc(k)}</span><i style="width:${n / max * 100}%"></i><b>${n}</b></div>`).join("") || '<p class="muted">Sem dados.</p>'; };
 async function load() {
   const [{ data: pr }, { data: tp }] = await Promise.all([
-    supabase.from("academy_profiles").select("id,nome,email,profissao,conselho,registro,cidade,uf,modalidade,origem,status,fundador_num,created_at").eq("role", "prescritor").order("created_at", { ascending: false }),
+    supabase.from("academy_profiles").select("id,nome,email,telefone,cep,logradouro,numero,complemento,bairro,profissao,conselho,registro,cidade,uf,modalidade,origem,status,fundador_num,created_at").eq("role", "prescritor").order("created_at", { ascending: false }),
     supabase.from("academy_forum_topicos").select("id,titulo,corpo,categoria,autor_nome,respostas,ultima_em,fixado").order("ultima_em", { ascending: false }).limit(100),
   ]);
   pros = pr || []; tops = tp || [];
@@ -86,7 +86,7 @@ document.addEventListener("click", async (e) => {
   load();
 });
 $("#csv").onclick = () => {
-  const cols = ["fundador_num", "nome", "email", "profissao", "conselho", "registro", "cidade", "uf", "modalidade", "origem", "status", "created_at"];
+  const cols = ["fundador_num", "nome", "email", "telefone", "profissao", "conselho", "registro", "cep", "logradouro", "numero", "complemento", "bairro", "cidade", "uf", "modalidade", "origem", "status", "created_at"];
   const csv = [cols.join(";"), ...pros.map((x) => cols.map((c) => `"${String(x[c] ?? "").replace(/"/g, '""')}"`).join(";"))].join("\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" }));

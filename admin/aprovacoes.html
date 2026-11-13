@@ -18,7 +18,7 @@
   </section>
   <div class="card tbl"><table><thead id="th"></thead><tbody id="rows"></tbody></table></div>
 </section></main></div>
-<dialog id="dlg" class="card" style="max-width:520px;width:calc(100% - 32px);color:inherit;border:1px solid var(--line)">
+<dialog id="dlg" class="card" style="max-width:560px;max-height:92vh;overflow:auto;width:calc(100% - 32px);color:inherit;border:1px solid var(--line)">
   <form id="fEd" method="dialog" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
     <h2 class="adm-h" style="grid-column:1/-1">Editar cadastro</h2>
     <div class="field" style="grid-column:1/-1"><label for="eNome">Nome</label><input id="eNome" required></div>
@@ -27,6 +27,12 @@
     <div class="field"><label for="eReg">Conselho e número</label><input id="eReg"></div>
     <div class="field"><label for="eCid">Cidade</label><input id="eCid"></div>
     <div class="field"><label for="eUf">UF</label><input id="eUf" maxlength="2"></div>
+      <div class="field"><label for="etel">Celular (WhatsApp)</label><input id="etel" type="tel"></div>
+      <div class="field"><label for="ecep">CEP</label><input id="ecep" maxlength="9" inputmode="numeric"></div>
+      <div class="field" style="grid-column:1/-1"><label for="erua">Rua / Avenida</label><input id="erua"></div>
+      <div class="field"><label for="enum">Número</label><input id="enum"></div>
+      <div class="field"><label for="ecompl">Complemento</label><input id="ecompl"></div>
+      <div class="field" style="grid-column:1/-1"><label for="ebai">Bairro</label><input id="ebai"></div>
     <div class="field" style="grid-column:1/-1"><label for="eSenha">Nova senha (deixe vazio para manter)</label><input id="eSenha" type="password" minlength="8" autocomplete="new-password"></div>
     <div class="msg" id="eMsg" style="grid-column:1/-1"></div>
     <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" value="salvar">Salvar</button><button type="button" class="btn btn-ghost btn-sm" id="eX">Fechar</button><button type="button" class="btn btn-danger btn-sm" id="eDel" style="margin-left:auto">Excluir conta</button></div>
@@ -112,6 +118,7 @@ function abrir(r) {
   atual = r;
   $("#eNome").value = r.nome || ""; $("#eEmail").value = r.email || ""; $("#eProf").value = r.profissao || "";
   $("#eReg").value = [r.conselho, r.registro].filter(Boolean).join(" "); $("#eCid").value = r.cidade || ""; $("#eUf").value = r.uf || ""; $("#eSenha").value = "";
+  $("#etel").value = r.telefone || ""; $("#ecep").value = r.cep || ""; $("#erua").value = r.logradouro || ""; $("#enum").value = r.numero || ""; $("#ecompl").value = r.complemento || ""; $("#ebai").value = r.bairro || "";
   $("#eMsg").className = "msg"; $("#eDel").hidden = r.id === p.id;
   $("#dlg").showModal();
 }
@@ -119,7 +126,7 @@ $("#eX").onclick = () => $("#dlg").close();
 $("#fEd").onsubmit = async (e) => {
   e.preventDefault();
   const m = $("#eMsg"), [conselho, ...num] = $("#eReg").value.trim().split(/\s+/);
-  const { error } = await supabase.from("academy_profiles").update({ nome: $("#eNome").value.trim(), profissao: $("#eProf").value.trim() || null, conselho: conselho || null, registro: num.join(" ") || null, cidade: $("#eCid").value.trim() || null, uf: $("#eUf").value.trim().toUpperCase() || null }).eq("id", atual.id);
+  const { error } = await supabase.from("academy_profiles").update({ telefone: $("#etel").value.trim() || null, cep: $("#ecep").value.trim() || null, logradouro: $("#erua").value.trim() || null, numero: $("#enum").value.trim() || null, complemento: $("#ecompl").value.trim() || null, bairro: $("#ebai").value.trim() || null, nome: $("#eNome").value.trim(), profissao: $("#eProf").value.trim() || null, conselho: conselho || null, registro: num.join(" ") || null, cidade: $("#eCid").value.trim() || null, uf: $("#eUf").value.trim().toUpperCase() || null }).eq("id", atual.id);
   if (error) return showMsg(m, "Erro: " + error.message);
   const email = $("#eEmail").value.trim().toLowerCase();
   if (email !== atual.email) { const { error: x } = await supabase.rpc("academy_admin_email", { uid: atual.id, novo: email }); if (x) return showMsg(m, "Erro no e-mail: " + x.message); }
