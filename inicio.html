@@ -41,12 +41,12 @@ const PROF = [
   { nome: "Paulo Mendes", trilha: "carboidratos-endurance", tema: "Carboidratos no endurance", foto: "paulo",
     tags: [["Triatleta", "ciência vivida"], ["Ironman", "estratégia testada"], ["Ultramaratonista", "além da teoria"]],
     bio: "Nutricionista e professor, especialista em Fisiologia do Exercício pela UnB e pós-graduado em Nutrição Clínica Funcional. Atua há mais de 15 anos na prática clínica e esportiva. É fundador do método Eix, criador da Formação em Nutrição no Endurance e palestrante em importantes eventos nacionais." },
-  { nome: "Juliana Maciel", trilha: "hidratacao-eletrolitos", tema: "Hidratação e eletrólitos", foto: "juliana",
-    tags: [["Trail run", "na trilha e no consultório"], ["Mountain bike", "endurance na prática"], ["ISAK 1", "antropometria"]],
-    bio: "Nutricionista graduada pelo Centro Universitário São Camilo, com pós-graduações em Nutrição Esportiva e em Fitoterapia aplicada ao Esporte e à Estética, além de certificação internacional em antropometria (ISAK nível 1). Atua em nutrição esportiva e atendimento clínico e presta consultoria para marcas e produtos de alimentação. Atleta de trail run e mountain bike." },
   { nome: "Lázaro Nunes", trilha: null, tema: "Lactato, fadiga e bicarbonato", foto: "lazaro",
     tags: [["PhD", "Unicamp"], ["+20 anos", "exames de quem treina"], ["Autor", "Exames Laboratoriais no Esporte"]],
     bio: "Farmacêutico-bioquímico pela Universidade Federal de Alfenas (UNIFAL-MG), com mestrado, doutorado e pós-doutorado pela Unicamp, onde desenvolve pesquisa no LABEX. Há mais de duas décadas estuda a interpretação de exames laboratoriais de atletas, com foco em intervalos de referência, variação biológica e saliva como fluido diagnóstico. Professor de pós-graduação em nutrição esportiva e autor do livro Exames Laboratoriais no Esporte (3ª edição, 2026)." },
+  { nome: "Juliana Maciel", trilha: "hidratacao-eletrolitos", tema: "Hidratação e eletrólitos", foto: "juliana",
+    tags: [["Trail run", "na trilha e no consultório"], ["Mountain bike", "endurance na prática"], ["ISAK 1", "antropometria"]],
+    bio: "Nutricionista graduada pelo Centro Universitário São Camilo, com pós-graduações em Nutrição Esportiva e em Fitoterapia aplicada ao Esporte e à Estética, além de certificação internacional em antropometria (ISAK nível 1). Atua em nutrição esportiva e atendimento clínico e presta consultoria para marcas e produtos de alimentação. Atleta de trail run e mountain bike." },
 ];
 const MARCELO = { nome: "Marcelo de Carvalho", foto: "marcelo",
   tags: [["Ciclista", "ciência em movimento"], ["Triatleta", "performance com longevidade"], ["Professor", "29 anos de experiência"]],
@@ -119,7 +119,7 @@ if (p.visita_url) $("#visita").innerHTML = `<a class="cta-forum cta-visita" href
 /* 3. programação em blocos */
 $("#blocos").innerHTML = PROF.map((x, i) => {
   const as = (crono || []).filter((c) => c.trilha_slug === x.trilha);
-  const prev = !as.length && x.nome === "Lázaro Nunes" ? [{ aula_titulo: "Lactato, fadiga e bicarbonato: mitos e verdades", libera_em: "2026-12-24T11:00:00Z" }, { aula_titulo: "Exames laboratoriais no esporte", libera_em: "2026-12-31T11:00:00Z" }] : null;
+  const prev = !as.length && x.nome === "Lázaro Nunes" ? [{ aula_titulo: "Lactato, fadiga e bicarbonato: mitos e verdades", libera_em: "2026-11-26T11:00:00Z" }, { aula_titulo: "Exames laboratoriais no esporte", libera_em: "2026-12-01T11:00:00Z" }] : null;
   if (prev) as.push(...prev);
   const lista = as.length ? as.map((c, k) => `<li class="${c.liberada ? "ok" : ""}">${c.liberada ? `<a href="aula?id=${c.aula_id}">` : "<span>"}<i>Aula ${k + 1}</i><b>${esc(c.aula_titulo)}</b><em>${c.liberada ? (done.has(c.aula_id) ? '<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Concluída' : '<svg class="si" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg> Assistir') : c.libera_em ? '<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Libera ' + dia(c.libera_em) : '<svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Em breve'}</em>${c.liberada ? "</a>" : "</span>"}</li>`).join("") : '<li><span><b>Aulas em breve</b><em></em></span></li>';
   return `<article class="bloco"><div class="bloco-h"><span class="bloco-n">Bloco ${i + 1}</span><h3>${esc(x.tema)}</h3></div><div class="bloco-c">${profCard(x)}<ol class="bloco-aulas">${lista}</ol></div></article>`;
