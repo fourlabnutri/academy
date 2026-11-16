@@ -37,6 +37,8 @@ async function load() {
     supabase.from("academy_forum_topicos").select("id,titulo,corpo,categoria,autor_nome,respostas,ultima_em,fixado").order("ultima_em", { ascending: false }).limit(100),
   ]);
   pros = pr || []; tops = tp || [];
+  { let n = Math.max(0, ...pros.map((x) => x.fundador_num || 0));
+    [...pros].sort((x, y) => new Date(x.created_at) - new Date(y.created_at)).forEach((x) => { if (!x.fundador_num) x.num = ++n; }); }
   const hoje = new Date().toDateString();
   $("#kpis").innerHTML = [
     [pros.filter((x) => x.status === "aprovado").length, "profissionais ativos"],
@@ -56,7 +58,7 @@ async function load() {
 function render() {
   const q = $("#q").value.trim().toLowerCase();
   const l = pros.filter((x) => !q || [x.nome, x.email, x.cidade, x.registro].join(" ").toLowerCase().includes(q));
-  $("#rows").innerHTML = l.map((x) => `<tr><td class="num">${x.fundador_num ? `<span class="pill ok">★ ${x.fundador_num}</span>` : "—"}</td><td><b>${esc(x.nome)}</b><div class="muted" style="font-size:12px">${esc(x.email)} · ${esc(x.profissao || "")}</div></td>
+  $("#rows").innerHTML = l.map((x) => `<tr><td class="num">${x.fundador_num ? `<span class="pill ok">★ ${x.fundador_num}</span>` : `<span class="pill">${x.num}</span>`}</td><td><b>${esc(x.nome)}</b><div class="muted" style="font-size:12px">${esc(x.email)} · ${esc(x.profissao || "")}</div></td>
     <td class="num">${esc([x.conselho, x.registro].filter(Boolean).join(" "))}</td><td>${esc([x.cidade, x.uf].filter(Boolean).join(" / "))}</td><td>${x.origem === "endurance-applied" ? "Evento" : "Site"}</td><td>${fmtDate(x.created_at)}</td>
     <td style="text-align:right">${!podeSuspender ? "" : x.status === "aprovado" ? `<button class="btn btn-ghost btn-sm" data-sus="${x.id}">Suspender</button>` : `<button class="btn btn-primary btn-sm" data-rea="${x.id}">Reativar</button>`}</td></tr>`).join("") || '<tr><td colspan="7" class="empty">Nenhum cadastro.</td></tr>';
 }
