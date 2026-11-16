@@ -84,6 +84,7 @@ export function shell(p, active) {
     ["comercial", "admin"].includes(p.role) && ["admin/aprovacoes", "Acessos", "check"],
     ["editor", "revisor", "admin"].includes(p.role) && ["admin/conteudo", "Conteúdo", "edit"],
     STAFF.includes(p.role) && ["admin/live", "Lançamento e módulos", "play"],
+    STAFF.includes(p.role) && ["admin/live-teste", "Sala de teste da live", "play"],
   ].filter(Boolean);
   if (!adm.some((a) => a[0] === "admin/painel") && STAFF.includes(p.role)) adm.unshift(["admin/painel", "Painel", "rank"]);
   const nav = items.map(([href, label, ic]) => (label === undefined

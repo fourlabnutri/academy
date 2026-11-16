@@ -1,0 +1,69 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/academy.css?v=1113a"><script src="../config.js"></script><title>Sala de teste · FourLab Academy</title></head>
+<body><div class="shell"><div></div><main><section class="view">
+  <div class="staff-note">Sala de teste: só a equipe vê. O chat daqui não aparece na sala real.</div>
+  <form id="fv" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+    <input class="search" id="v" placeholder="Cole o link ou ID da live de teste do YouTube" style="flex:1;min-width:240px">
+    <button class="btn btn-primary btn-sm">Carregar vídeo</button>
+    <button type="button" class="btn btn-ghost btn-sm" id="cp">Copiar link para a equipe</button>
+  </form>
+  <div class="lv">
+    <div class="lv-main">
+      <div class="video" id="video"><div class="lv-wait"><b>Cole o link da live acima</b></div></div>
+      <div class="lv-head"><span class="lv-badge">Teste</span><h1>Sala de teste da live</h1><p class="muted">Abra no celular e no computador e mande mensagens para testar.</p></div>
+    </div>
+    <aside class="card lv-chat">
+      <h2>Chat de teste</h2>
+      <div class="lv-msgs" id="msgs" aria-live="polite"></div>
+      <form id="f" class="lv-form"><input id="m" maxlength="500" placeholder="Escreva sua mensagem" autocomplete="off" aria-label="Mensagem"><button class="btn btn-primary btn-sm">Enviar</button></form>
+      <button class="btn btn-ghost btn-sm" id="limpa" style="margin-top:10px">Limpar chat de teste</button>
+    </aside>
+  </div>
+</section></main></div>
+<script type="module">
+import { supabase, $, esc, guard, shell, isStaff, pandaUrl } from "../assets/app.js";
+const p = await guard(); if (!p) throw 0;
+if (!isStaff(p)) { location.replace("../inicio"); throw 0; }
+shell(p, "admin/live-teste");
+const T = "academy_live_chat_teste", msgs = [];
+const ytId = (v) => (String(v).match(/(?:youtu\.be\/|[?&]v=|embed\/|live\/|shorts\/)([\w-]{11})/) || [])[1] || v.trim();
+function video(v) {
+  if (!v) return;
+  const id = ytId(v); $("#v").value = id;
+  history.replaceState(null, "", "?v=" + encodeURIComponent(id));
+  $("#video").innerHTML = `<iframe src="${pandaUrl(id)}" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe>`;
+}
+video(new URLSearchParams(location.search).get("v"));
+$("#fv").onsubmit = (e) => { e.preventDefault(); video($("#v").value); };
+$("#cp").onclick = async () => { await navigator.clipboard.writeText(location.href); $("#cp").textContent = "Link copiado!"; };
+const linha = (c) => `<div class="lv-msg"><b>${esc(c.autor_nome)}</b><span class="lv-tag eq">Equipe</span><p>${esc(c.corpo)}</p><span class="lv-mod"><button data-del="${c.id}">Apagar</button></span></div>`;
+function pintar() {
+  const box = $("#msgs"), fim = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  box.innerHTML = msgs.map(linha).join("") || '<p class="muted">Nenhuma mensagem ainda.</p>';
+  if (fim) box.scrollTop = box.scrollHeight;
+}
+const { data: hist, error: he } = await supabase.from(T).select("*").order("created_at", { ascending: false }).limit(150);
+if (he) $("#msgs").innerHTML = '<p class="muted">Rode o SQL 020 no Supabase para ativar o chat de teste.</p>';
+else { msgs.push(...(hist || []).reverse()); pintar(); }
+supabase.channel("live-teste")
+  .on("postgres_changes", { event: "INSERT", schema: "public", table: T }, ({ new: c }) => { if (!msgs.some((x) => x.id === c.id)) { msgs.push(c); pintar(); } })
+  .on("postgres_changes", { event: "DELETE", schema: "public", table: T }, ({ old }) => { const i = msgs.findIndex((x) => x.id === old.id); if (i >= 0) { msgs.splice(i, 1); pintar(); } })
+  .subscribe();
+$("#f").onsubmit = async (e) => {
+  e.preventDefault();
+  const corpo = $("#m").value.trim(); if (!corpo) return;
+  const { data, error } = await supabase.from(T).insert({ user_id: p.id, corpo }).select().single();
+  if (error) { $("#m").placeholder = "Não foi possível enviar"; return; }
+  $("#m").value = "";
+  if (!msgs.some((x) => x.id === data.id)) { msgs.push(data); pintar(); $("#msgs").scrollTop = 1e9; }
+};
+$("#msgs").onclick = async (e) => {
+  const id = e.target.dataset.del; if (!id) return;
+  await supabase.from(T).delete().eq("id", id);
+  const i = msgs.findIndex((x) => x.id === id); if (i >= 0) { msgs.splice(i, 1); pintar(); }
+};
+$("#limpa").onclick = async () => {
+  if (!confirm("Apagar todas as mensagens do chat de teste?")) return;
+  await supabase.from(T).delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  msgs.length = 0; pintar();
+};
+</script></body></html>
