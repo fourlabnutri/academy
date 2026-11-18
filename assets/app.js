@@ -165,6 +165,8 @@ function avisoEndereco(p, active, root) {
   if (p.role !== "prescritor" || p.demo_agora || active === "conta") return;
   if (Date.now() < new Date("2026-11-18T00:00:00-03:00").getTime()) return;
   if (p.logradouro && p.cep && p.numero) return;
+  const main = document.querySelector("main");
+  if (main) main.insertAdjacentHTML("afterbegin", `<a href="${root}conta" data-track="faixa-endereco" style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 16px;padding:11px 16px;border-radius:12px;background:linear-gradient(90deg,#f7931e,#e6007e);color:#fff;font-weight:700;font-size:14px;text-decoration:none;text-align:center">🎁 Complete seu endereço para receber o kit de boas-vindas e presentes <span style="background:rgba(255,255,255,.22);padding:4px 12px;border-radius:20px;font-size:13px">Completar agora →</span></a>`);
   try { if (sessionStorage.getItem("ac_end")) return; } catch {}
   const d = document.createElement("dialog");
   d.className = "card"; d.style.cssText = "max-width:440px;border:0;border-radius:18px";
