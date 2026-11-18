@@ -56,7 +56,7 @@ const profCard = (x) => `<div class="prof"><img src="assets/professores/${x.foto
 
 const [{ data: trilhas }, { data: aulas }, { data: prog }, { data: arts }, { data: rank }, { data: live }, { data: crono }] = await Promise.all([
   supabase.from("academy_trilhas").select("*").eq("etapa", "publicado").order("ordem"),
-  supabase.from("academy_aulas").select("id,trilha_id,titulo,professor,duracao_seg,ordem,panda_video_id").eq("etapa", "publicado").order("ordem"),
+  supabase.from("academy_aulas").select("id,trilha_id,titulo,professor,duracao_seg,ordem,panda_video_id,libera_em").eq("etapa", "publicado").order("ordem"),
   supabase.from("academy_progresso").select("aula_id,concluida").eq("user_id", p.id),
   supabase.from("academy_artigos").select("tema").eq("etapa", "publicado"),
   supabase.rpc("academy_ranking"),
