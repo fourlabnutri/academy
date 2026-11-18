@@ -1,22 +1,18 @@
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="icon" href="./favicon.ico"><link rel="stylesheet" href="./assets/academy.css?v=1113a"><script src="./config.js"></script><title>Aula inaugural · FourLab Academy</title></head>
 <body><div class="shell"><div></div><main><section class="view">
-  <div class="lv">
+  <div class="lv" style="grid-template-columns:1fr">
     <div class="lv-main">
       <div class="video" id="video"></div>
-      <div class="lv-head"><span class="lv-badge" id="badge">Aula inaugural</span><h1 id="t"></h1><p class="muted" id="sub"></p></div>
+      <div class="lv-head"><span class="lv-badge" id="badge">Aula inaugural</span><h1 id="t"></h1><p class="muted" id="sub"></p><a class="btn btn-primary btn-sm" id="abrir" target="_blank" rel="noopener" hidden style="margin-top:12px">Assistir e comentar no YouTube</a></div>
     </div>
-    <aside class="card lv-chat">
-      <h2>Chat ao vivo</h2>
-      <div id="chatyt" style="flex:1;min-height:420px;display:flex"></div>
-      <p class="muted" style="font-size:12px;margin-top:8px">Para enviar mensagens, entre na sua conta do YouTube. <a id="abrir" target="_blank" rel="noopener">Abrir chat no YouTube</a></p>
-    </aside>
+    
   </div>
 </section></main></div>
 <script type="module">
 import { supabase, $, guard, shell, pandaUrl } from "./assets/app.js";
 const p = await guard(); if (!p) throw 0;
 shell(p, "live");
-let live, videoAtual, chatAtual;
+let live, videoAtual;
 const dataLonga = (d) => new Date(d).toLocaleString("pt-BR", { weekday: "long", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" });
 function falta(ms) {
   const m = Math.ceil(ms / 60000), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60);
@@ -37,11 +33,7 @@ async function carregar() {
     $("#video").innerHTML = `<div class="lv-wait" style="--img:url('/assets/live/capa.jpg')"><b>${ms === null ? "Em breve" : ms > 0 ? "Começa em " + falta(ms) : "A transmissão vai começar"}</b></div>`;
   }
   $("#badge").textContent = noAr && ms <= 0 ? "● Ao vivo" : "Aula inaugural";
-  if (noAr && chatAtual !== live.yt_id) {
-    chatAtual = live.yt_id;
-    $("#chatyt").innerHTML = `<iframe src="https://www.youtube.com/live_chat?v=${encodeURIComponent(live.yt_id)}&embed_domain=${location.hostname}" style="width:100%;flex:1;border:0;border-radius:10px;min-height:420px" title="Chat ao vivo"></iframe>`;
-    $("#abrir").href = "https://www.youtube.com/live_chat?v=" + encodeURIComponent(live.yt_id);
-  } else if (!noAr) { chatAtual = null; $("#chatyt").innerHTML = '<p class="muted">O chat abre no início da transmissão.</p>'; }
+  $("#abrir").hidden = !noAr; if (noAr) $("#abrir").href = "https://www.youtube.com/watch?v=" + encodeURIComponent(live.yt_id);
 }
 await carregar();
 setInterval(carregar, 30000);
