@@ -39,6 +39,12 @@ async function carregar() {
   const ms = live.inicio ? new Date(live.inicio) - Date.now() : null;
   $("#zoomInfo").hidden = !zoom;
   if (zoom) {
+    const acabou = ms !== null && ms < -80 * 60000;
+    if (acabou) {
+      $("#video").innerHTML = `<div class="lv-wait" style="--img:url('/assets/live/capa.jpg')"><b>A aula ao vivo terminou. A gravação estará disponível em breve.</b></div>`;
+      $("#abrir").hidden = true; $("#libera").hidden = true; $("#zoomInfo").hidden = true;
+      $("#badge").textContent = "Aula inaugural · encerrada"; return;
+    }
     const aberto = ms !== null && ms <= 5 * 60000;
     $("#video").innerHTML = `<div class="lv-wait" style="--img:url('/assets/live/capa.jpg')"><b>${ms === null ? "Em breve" : ms > 0 ? "Começa em " + falta(ms) : "A aula está acontecendo no Zoom"}</b></div>`;
     $("#abrir").hidden = !aberto; $("#abrir").textContent = "Entrar na aula pelo Zoom"; $("#abrir").href = live.yt_id;

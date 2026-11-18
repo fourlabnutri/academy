@@ -100,9 +100,10 @@ const lockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const mostraVideo = (novo) => {
   $("#spoiler").innerHTML = `<div class="sp-head"><span class="lv-pill">Spoiler liberado</span><b>Um trecho da aula 1 com Paulo Mendes</b></div><video src="assets/spoiler/paulo-m1.mp4" poster="assets/spoiler/paulo-m1.jpg" controls playsinline ${novo ? "autoplay" : ""}></video>${novo ? '<p class="sp-ok">+10 pontos no ranking. Obrigado pela resposta!</p>' : ""}`;
 };
-if (p.demo_agora) $("#spoiler").remove();
+if (p.demo_agora || !emAnuncio) $("#spoiler").remove();
+if (!emAnuncio) { const pl = $("#modulo1 .lv-pill"); if (pl) pl.textContent = "Primeiro módulo · disponível agora"; }
 const { data: jaResp } = p.demo_agora ? { data: null } : await supabase.from("academy_pesquisa").select("resposta").eq("user_id", p.id).eq("chave", SPK).maybeSingle();
-if (p.demo_agora) {}
+if (p.demo_agora || !emAnuncio) {}
 else if (jaResp) mostraVideo(false);
 else {
   $("#spoiler").innerHTML = `<div class="sp-lock"><img src="assets/spoiler/paulo-m1.jpg" alt=""><div class="sp-over"><span class="sp-ic">${lockSvg}</span><span class="lv-pill">Spoiler exclusivo</span><h3>Assista um trecho da aula do Paulo antes de todo mundo</h3><p>Responda uma pergunta rápida para destravar e ganhe <b>+10 pontos</b>.</p><p class="sp-q">Qual o maior desafio dos seus atletas com carboidrato?</p><div class="sp-ops">${OPCOES.map((o) => `<button type="button" data-op="${esc(o)}">${esc(o)}</button>`).join("")}</div></div></div>`;
