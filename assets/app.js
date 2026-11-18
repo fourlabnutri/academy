@@ -107,6 +107,7 @@ export function shell(p, active) {
     document.addEventListener("click", (e) => { if (!fly.hidden && !fly.contains(e.target)) fly.hidden = true; });
   }
   track(p);
+  avisoEndereco(p, active, root);
   document.getElementById("sair").onclick = async () => { await supabase.auth.signOut(); location.href = root + "login"; };
   const av = document.getElementById("meAv");
   if (av) av.textContent = initials(p.nome);
@@ -159,3 +160,22 @@ function olhos() {
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", olhos); else olhos();
 new MutationObserver(olhos).observe(document.documentElement, { childList: true, subtree: true });
+
+function avisoEndereco(p, active, root) {
+  if (p.role !== "prescritor" || p.demo_agora || active === "conta") return;
+  if (Date.now() < new Date("2026-11-18T00:00:00-03:00").getTime()) return;
+  if (p.logradouro && p.cep && p.numero) return;
+  try { if (sessionStorage.getItem("ac_end")) return; } catch {}
+  const d = document.createElement("dialog");
+  d.className = "card"; d.style.cssText = "max-width:440px;border:0;border-radius:18px";
+  d.innerHTML = `<div style="font-size:34px">🎁</div>
+    <h2 style="font-size:20px;margin:8px 0">Complete seu endereço</h2>
+    <p class="muted" style="font-size:14px;line-height:1.55">Ainda não recebeu seu <b>kit de boas-vindas</b>? Complete seu endereço para recebê-lo e ganhar em primeira mão nossos <b>lançamentos, novidades e presentes</b>.</p>
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+      <a class="btn btn-primary" href="${root}conta" data-track="aviso-endereco">Completar endereço</a>
+      <button class="btn btn-ghost" type="button">Depois</button>
+    </div>`;
+  document.body.appendChild(d);
+  d.querySelector("button").onclick = () => { try { sessionStorage.setItem("ac_end", "1"); } catch {} d.close(); d.remove(); };
+  d.showModal();
+}
