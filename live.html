@@ -3,9 +3,20 @@
   <div class="lv" style="grid-template-columns:1fr">
     <div class="lv-main">
       <div class="video" id="video"></div>
-      <div class="lv-head"><span class="lv-badge" id="badge">Aula inaugural</span><h1 id="t"></h1><p class="muted" id="sub"></p><a class="btn btn-primary btn-sm" id="abrir" target="_blank" rel="noopener" hidden style="margin-top:12px">Assistir e comentar no YouTube</a></div>
+      <div class="lv-head"><span class="lv-badge" id="badge">Aula inaugural</span><h1 id="t"></h1><p class="muted" id="sub"></p>
+        <a class="btn btn-primary" id="abrir" target="_blank" rel="noopener" hidden style="margin-top:14px"></a>
+        <p class="muted" id="libera" hidden style="margin-top:12px;font-size:13.5px"></p>
+      </div>
+      <div class="card" id="zoomInfo" hidden style="margin-top:20px">
+        <h2 class="adm-h">Como assistir pelo Zoom</h2>
+        <ol style="margin:8px 0 0 18px;line-height:1.7;font-size:14.5px">
+          <li><b>Tenha uma conta Zoom</b> (obrigatório pela plataforma). Se não tiver, crie grátis em <a href="https://zoom.us/signup" target="_blank" rel="noopener">zoom.us/signup</a>.</li>
+          <li><b>Antes da aula, confira seu e-mail e senha</b> entrando no app ou em <a href="https://zoom.us/signin" target="_blank" rel="noopener">zoom.us/signin</a>, para não travar na hora.</li>
+          <li>Instale o app do Zoom no celular ou computador.</li>
+          <li>O botão <b>Entrar na aula pelo Zoom</b> aparece aqui <b>5 minutos antes</b> do início.</li>
+        </ol>
+      </div>
     </div>
-    
   </div>
 </section></main></div>
 <script type="module">
@@ -18,12 +29,24 @@ function falta(ms) {
   const m = Math.ceil(ms / 60000), d = Math.floor(m / 1440), h = Math.floor(m % 1440 / 60);
   return d ? `${d}d ${h}h` : h ? `${h}h ${m % 60}min` : `${m} min`;
 }
+const isZoom = (v) => /zoom\.us/i.test(v || "");
 async function carregar() {
   ({ data: live } = await supabase.from("academy_live").select("*").maybeSingle());
   if (!live) return;
   $("#t").textContent = live.titulo;
-  $("#sub").textContent = [live.professor, live.inicio && dataLonga(live.inicio)].filter(Boolean).join(" · ");
+  const zoom = isZoom(live.yt_id);
+  $("#sub").textContent = [live.professor, live.inicio && dataLonga(live.inicio), zoom && "ao vivo pelo Zoom"].filter(Boolean).join(" · ");
   const ms = live.inicio ? new Date(live.inicio) - Date.now() : null;
+  $("#zoomInfo").hidden = !zoom;
+  if (zoom) {
+    const aberto = ms !== null && ms <= 5 * 60000;
+    $("#video").innerHTML = `<div class="lv-wait" style="--img:url('/assets/live/capa.jpg')"><b>${ms === null ? "Em breve" : ms > 0 ? "Começa em " + falta(ms) : "A aula está acontecendo no Zoom"}</b></div>`;
+    $("#abrir").hidden = !aberto; $("#abrir").textContent = "Entrar na aula pelo Zoom"; $("#abrir").href = live.yt_id;
+    $("#libera").hidden = aberto; $("#libera").textContent = "O link do Zoom é liberado aqui 5 minutos antes do início.";
+    $("#badge").textContent = ms !== null && ms <= 0 ? "● Ao vivo no Zoom" : "Aula inaugural · Zoom";
+    return;
+  }
+  $("#libera").hidden = true;
   const noAr = live.yt_id && ms !== null && ms <= 30 * 60000;
   if (noAr && videoAtual !== live.yt_id) {
     videoAtual = live.yt_id;
@@ -33,8 +56,8 @@ async function carregar() {
     $("#video").innerHTML = `<div class="lv-wait" style="--img:url('/assets/live/capa.jpg')"><b>${ms === null ? "Em breve" : ms > 0 ? "Começa em " + falta(ms) : "A transmissão vai começar"}</b></div>`;
   }
   $("#badge").textContent = noAr && ms <= 0 ? "● Ao vivo" : "Aula inaugural";
-  $("#abrir").hidden = !noAr; if (noAr) $("#abrir").href = "https://www.youtube.com/watch?v=" + encodeURIComponent(live.yt_id);
+  $("#abrir").hidden = !noAr; $("#abrir").textContent = "Assistir e comentar no YouTube"; if (noAr) $("#abrir").href = "https://www.youtube.com/watch?v=" + encodeURIComponent(live.yt_id);
 }
 await carregar();
-setInterval(carregar, 30000);
+setInterval(carregar, 15000);
 </script></body></html>

@@ -6,7 +6,7 @@
     <div class="field"><label for="titulo">Título</label><input id="titulo" required></div>
     <div class="field"><label for="professor">Professor</label><input id="professor"></div>
     <div class="field"><label for="inicio">Data e hora da live</label><input id="inicio" type="datetime-local"></div>
-    <div class="field"><label for="yt_id">Link da live no YouTube</label><input id="yt_id" placeholder="https://youtube.com/live/..."></div>
+    <div class="field"><label for="yt_id">Link da live (Zoom ou YouTube)</label><input id="yt_id" placeholder="https://us06web.zoom.us/j/... ou https://youtube.com/live/..."></div>
     <div class="field"><label for="visita">Link de agendamento de visita (Visitor Flow)</label><input id="visita" placeholder="https://..."></div>
     <div class="field"><label>Módulos visíveis para os profissionais</label><div id="mods" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div><small class="muted">A equipe sempre vê tudo. Trilhas e aulas seguem a data de liberação abaixo.</small></div>
     <div class="field"><label for="libera">Liberar as aulas em</label><input id="libera" type="datetime-local"></div>
@@ -22,7 +22,7 @@ shell(p, "admin/live");
 const { data: l } = await supabase.from("academy_live").select("*").maybeSingle();
 const local = (v) => { if (!v) return ""; const d = new Date(v); return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
 const iso = (v) => (v ? new Date(v).toISOString() : null);
-const yt = (v) => { const s = v.trim(); return (s.match(/(?:youtu\.be\/|[?&]v=|embed\/|live\/|shorts\/)([\w-]{11})/) || [])[1] || s || null; };
+const yt = (v) => { const s = v.trim(); if (/zoom\.us/i.test(s)) return s; return (s.match(/(?:youtu\.be\/|[?&]v=|embed\/|live\/|shorts\/)([\w-]{11})/) || [])[1] || s || null; };
 $("#titulo").value = l.titulo; $("#professor").value = l.professor || ""; $("#inicio").value = local(l.inicio);
 $("#yt_id").value = l.yt_id || ""; $("#libera").value = local(l.aulas_liberam_em);
 const MODS = [["live", "Aula inaugural"], ["artigos", "Artigos"], ["forum", "Fórum"], ["ranking", "Ranking"], ["quiz", "Desafio (quiz)"], ["certificados", "Certificados"]];
